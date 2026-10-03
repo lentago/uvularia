@@ -43,12 +43,22 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Harness self-tests (the hard gate; needs no vault)
+        run: python3 -m unittest discover -s evals/tests -p "test_*.py"
+
       - name: Dry run the golden set against the published corpus
         id: dry
         continue-on-error: true   # captured below so the comment still posts; the job fails at the end
         run: |
-          set -o pipefail
+          set +e
           python3 evals/run.py --mode dry --report dry-report.md 2>&1 | tee dry.txt
+          rc=${PIPESTATUS[0]}
+          if [ "$rc" = "3" ]; then
+            echo "corpus=missing" >> "$GITHUB_OUTPUT"   # fresh repo: nothing published yet; a notice, not a failure
+            exit 0
+          fi
+          echo "corpus=present" >> "$GITHUB_OUTPUT"
+          exit "$rc"
 
       - name: Install the engine for the live run
         if: env.MITCHELLA_API_KEY != ''
@@ -71,8 +81,14 @@ jobs:
           lines = ["<!-- uvularia-evals -->", "## Ask-box evals", ""]
 
           dry_ok = "${{ steps.dry.outcome }}" == "success"
-          lines.append("✅ **Dry checks passed.**" if dry_ok
-                       else "❌ **Dry checks failed.** Nothing ships until this is green.")
+          corpus_missing = "${{ steps.dry.outputs.corpus }}" == "missing"
+          if corpus_missing:
+              lines.append("ℹ️ **No published corpus yet** — the golden set is checked once your "
+                           "records vault has published and `published_base` in policy.yaml points at it. "
+                           "The harness self-tests passed.")
+          else:
+              lines.append("✅ **Dry checks passed.**" if dry_ok
+                           else "❌ **Dry checks failed.** Nothing ships until this is green.")
 
           # The prompt diff: what changed in the files that shape every answer.
           shaping = ["instructions.md", "policy.yaml", "signals/incidents.toml"]

@@ -111,3 +111,13 @@ class Plumbing(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MissingCorpusIsANoticeNotAFailure(unittest.TestCase):
+    """A fresh repo has no published corpus yet; the harness must say so with exit
+    code 3 (distinct from a failing eval) so the workflow can treat it as a notice."""
+
+    def test_unreadable_bundle_exits_3(self):
+        with self.assertRaises(SystemExit) as cm:
+            run.load_bundle("/nonexistent/corpus-latest.json")
+        self.assertEqual(cm.exception.code, 3)
