@@ -34,7 +34,7 @@ Start the clock. Record the elapsed time at each checkpoint.
 
 | # | Step | Check it's green | Elapsed | ✅ |
 |---|---|---|---|---|
-| 1 | **Create the vault** — **Use this template** on `templates/records/` → *Create a new repository*, named `<org>-records`, visibility **Public**. | Repo exists under the target org and is public. | | |
+| 1 | **Create the vault** — **Use this template** on [`lentago/uvularia-records-template`](https://github.com/lentago/uvularia-records-template) → *Create a new repository*, named `<org>-records`, visibility **Public**. | Repo exists under the target org and is public. | | |
 | 2 | **Name your org** — edit `index.md` to name the organization. | File saved; no placeholder org name left. | | |
 | 3 | **Set your reviewers** — in `.github/CODEOWNERS`, replace every `@REPLACE-WITH-YOUR-REVIEWER` with your team or usernames. | No `REPLACE` string remains in the file. | | |
 | 4 | **Keep the obligations that apply** — in `obligations/`, keep the rules that apply to you and delete the rest (the template ships one example). | `obligations/` holds only rules you mean to show. | | |
@@ -44,7 +44,7 @@ Start the clock. Record the elapsed time at each checkpoint.
 | 8 | **File the first record** — Issues → New issue → **Add a record**; pick the type, date, title, two-sentence summary, and subjects, and attach the PDF. | Within a minute the issue gets a comment linking a pull request *Intake for #N*. | | |
 | 9 | **Check the record's PR** — open the linked pull request. | The **validate** check is green; the record is scaffolded as `status: draft`. | | |
 | 10 | **Approve and merge** — on the PR, set `status: approved` and the `approved` date, then merge. | The **publish** workflow runs; a new receipt appears under `receipts/` and `standing.json` updates. | | |
-| 11 | **Create the site** — **Use this template** on `templates/site/` → named `<org>-site`. | Repo exists under the target org. | | |
+| 11 | **Create the site** — **Use this template** on [`lentago/uvularia-site-template`](https://github.com/lentago/uvularia-site-template) → named `<org>-site`. | Repo exists under the target org. | | |
 | 12 | **Turn on the site's Pages** — Settings → Pages → Source = **GitHub Actions**. | Setting saved. | | |
 | 13 | **Point the site at the vault** — edit `site.config.ts`: set `publishedBaseUrl` to the vault's published URL, plus `orgName`, `contact`, `accent`, and `base` = `/<org>-site`. Commit to `main`. | No placeholders left; `deploy-pages` runs on the push. | | |
 | 14 | **Watch the deploy** — Actions tab, the **deploy-pages** workflow. | Workflow is green; it reports the live URL. | | |
