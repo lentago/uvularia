@@ -1,0 +1,31 @@
+# ============================================================================
+# intake — test the vault template's Issue-form intake door
+# ============================================================================
+# Runs templates/records/scripts/tests on every pull request: the form parser
+# and the record scaffolder, over two fixture issue bodies (one with an attached
+# file, one without), plus a failed-download case that must still scaffold. The
+# scaffolded record is validated with the vendored core/validate.py — the whole
+# "done when" of #7 is that the scaffold passes validation unedited. Stdlib only.
+#
+# Deliberately NOT path-filtered. Like the other test workflows, this is built to
+# serve as a required status check, and a required check whose workflow never
+# triggers is held "Expected" forever, deadlocking every non-matching PR. The
+# suite is cheap and exits in well under a second.
+# ============================================================================
+
+name: intake
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  test-intake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run the intake door tests
+        run: python3 -m unittest discover -s templates/records/scripts/tests -p "test_*.py" -v
