@@ -20,3 +20,19 @@ updates:
         applies-to: version-updates
         patterns: ["*"]
         update-types: ["major"]
+
+  # The site template is the only npm toolchain in the repo (Astro). Grouping
+  # minor+patch into one weekly PR keeps routine churn reviewable on green
+  # checks, while majors still arrive as their own PRs to be read deliberately.
+  # Kept so the Dependabot alerts this ecosystem raised cannot pile up silently
+  # again.
+  - package-ecosystem: npm
+    directory: /templates/site
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      site-routine:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
