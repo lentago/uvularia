@@ -1,0 +1,64 @@
+# ============================================================================
+# test-ask-function — the Ask-function template's tests, run in THIS repo on every PR
+# ============================================================================
+# templates/ask-function/ ships a deploy workflow for the client's rules repo,
+# but nothing in lentago/uvularia's CI exercises the package itself without this
+# workflow. Three things run here:
+#
+#   1. the function's unit tests (stdlib only, no key, no network): the daily
+#      cap, the kill switch, the citation surface, and the Turnstile bypass.
+#      This is the hard gate.
+#   2. terraform fmt and validate over the module, so a client's copy is
+#      well-formed before they ever run it.
+#   3. the live integration test, which installs mitchella + anthropic and builds
+#      the engine over the DEMONSTRATION vault's published corpus, standing, and
+#      feed — proving the real artifacts load and the providers read. It calls no
+#      model (no key, no spend). If the engine will not install or the demo is
+#      unreachable, that step warns and is skipped rather than faking green; the
+#      unit tests remain the gate (the repo's skip-with-a-notice precedent).
+#
+# No `on:`-level path filter: a path-filtered required check never fires on
+# non-matching PRs and is held "Expected" forever (the fleet's deadlock rule).
+# ============================================================================
+
+name: test-ask-function
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  test-ask-function:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Unit tests (cap, kill switch, citations, Turnstile bypass)
+        run: |
+          python3 -m unittest discover \
+            -s templates/ask-function/tests -p "test_*.py" -v
+
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform fmt and validate
+        working-directory: templates/ask-function/terraform
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false -input=false
+          terraform validate
+
+      - name: Install the engine for the live integration test
+        id: install
+        continue-on-error: true
+        run: pip install --quiet -r templates/ask-function/requirements.txt
+
+      - name: Build the engine over the demonstration vault (no model call)
+        if: steps.install.outcome == 'success'
+        run: |
+          python3 -m unittest discover \
+            -s templates/ask-function/tests -p "test_integration.py" -v
