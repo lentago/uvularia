@@ -33,8 +33,29 @@ jobs:
     secrets: inherit
     with:
       review_prompt: |
-        REPLACE THIS PLACEHOLDER. Describe what THIS repository is (one or two
-        sentences), then list the 4–6 dimensions the reviewer should focus on,
-        each as a bolded category with a short explanation. Tailor to the
-        repo's actual content (e.g. Terraform/AWS, HA YAML, bash scripts,
-        markdown prose, Python). See the fleet for working examples.
+        This repository is uvularia, the Lentago Labs records vault: schemas,
+        a stdlib-only validator and obligation evaluator, three repository
+        templates a client instantiates in their own GitHub org (records vault,
+        Ask rules, site), a Massachusetts obligations pack, and a fictional,
+        renameable demonstration client. Review for:
+
+        **Separation.** Nothing in the records template may change a rule;
+        nothing in the rules template may change a record; the site template
+        must build from the published bundle, never a vault checkout.
+
+        **Invariants.** Public-only visibility, no deletion of published
+        records, server-side timestamps in receipts, "no data" never rendered
+        as green, demo identity only in demo/org.yaml.
+
+        **Readability.** Anything a client runs in CI must be standard-library
+        Python a tech director can read; no new dependencies without an ADR.
+
+        **Portability.** No Lentago estate specifics (hostnames, accounts,
+        container ids) under templates/ or demo/; a stranger's org with a free
+        GitHub account must be enough.
+
+        **Schema discipline.** Frontmatter fields come from core/schema only;
+        record ids are stable path slugs; supersession is a chain, not a rename.
+
+        **Prose.** Reader-facing Markdown follows the fleet voice guide: what,
+        why, how long, how you know it worked; terms defined on first use.
