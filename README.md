@@ -26,7 +26,7 @@ operator, not a software engineer. Please don't read this repo as a portfolio of
 coding ability.
 
 **Status: Phase 0 complete, pending its first timed dry-run.** The core (schema,
-validator, obligation evaluator, bundle format), the three repository templates,
+validator, obligation evaluator, bundle format), the records and site templates,
 the Issue-form intake, the publish workflow, the public board, and the
 demonstration client are all built and tested. What a client needs to adopt it is
 written: [`ADOPTION.md`](ADOPTION.md) and a checkpointed [`DRY-RUN.md`](DRY-RUN.md).
