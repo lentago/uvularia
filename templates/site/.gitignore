@@ -1,0 +1,12 @@
+# Node dependencies.
+node_modules/
+
+# Astro build output and cache.
+dist/
+.astro/
+
+# The published artifacts fetched at build time. Never committed — the site is
+# always rebuilt from the vault's live `published` branch.
+.published/
+
+.DS_Store

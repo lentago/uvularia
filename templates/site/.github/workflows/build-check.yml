@@ -1,0 +1,48 @@
+# ============================================================================
+# build-check — gate every pull request on a clean type-check, a real build, and
+# the schema validation the build depends on
+# ============================================================================
+# Paths are relative to the repository root: in your org this template IS the
+# repo, so package.json sits at the root.
+#
+# Runs `astro check` (types), the schema tests (the vendored validator must pass
+# the good fixtures and FAIL the bad ones), and the board tests (two real
+# `astro build` runs against fixtures, asserting the rendered /board/ HTML). All
+# hermetic — the tests build against local fixtures via UVULARIA_PUBLISHED_BASE, so
+# a PR never depends on the network or on the vault having published anything.
+#
+# Deliberately NOT path-filtered. If this is a required status check, a run that
+# never triggers is held "Expected" forever and deadlocks every PR that did not
+# touch the filtered paths.
+# ============================================================================
+
+name: build-check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'   # astro check needs Node 20+ (the RegExp /v flag)
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check (astro check)
+        run: npm run check
+
+      - name: Schema validation + board build tests
+        # schema.test.mjs proves the validator passes good artifacts and fails bad
+        # ones; board.test.mjs runs two full `astro build`s and inspects /board/.
+        run: npm test

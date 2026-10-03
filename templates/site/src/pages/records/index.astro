@@ -1,0 +1,43 @@
+---
+import Base from "../../layouts/Base.astro";
+import { url } from "../../lib/url.mjs";
+import { records, typeOf } from "../../lib/published.mjs";
+
+const recs = records();
+
+// Group by record type (the folder the record lives in), types alphabetical,
+// records within a type newest id first (ids start YYYY-MM-DD).
+const groups = {};
+for (const r of recs) {
+  const t = typeOf(r);
+  (groups[t] ||= []).push(r);
+}
+for (const t of Object.keys(groups)) groups[t].sort((a, b) => (a.doc_id < b.doc_id ? 1 : -1));
+const types = Object.keys(groups).sort();
+---
+
+<Base title="Records">
+  <h1>Records</h1>
+  {
+    recs.length === 0 ? (
+      <p class="notice">Nothing has been published yet. When records are published to the vault, they appear here.</p>
+    ) : (
+      <>
+        <p class="muted">{recs.length} published record{recs.length === 1 ? "" : "s"}, grouped by type.</p>
+        {types.map((t) => (
+          <section>
+            <h2 style="text-transform:capitalize">{t}</h2>
+            <ul>
+              {groups[t].map((r) => (
+                <li>
+                  <a href={url(`records/${r.doc_id}/`)}>{r.title}</a>{" "}
+                  <span class="muted">· <code>{r.doc_id}</code></span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </>
+    )
+  }
+</Base>

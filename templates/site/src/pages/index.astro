@@ -1,0 +1,39 @@
+---
+import Base from "../layouts/Base.astro";
+import config from "../../site.config.ts";
+import { url } from "../lib/url.mjs";
+import { records, standing } from "../lib/published.mjs";
+
+const recs = records();
+const rows = standing();
+const counts = { green: 0, amber: 0, red: 0, "no-data": 0 };
+for (const r of rows || []) counts[r.state] = (counts[r.state] || 0) + 1;
+---
+
+<Base>
+  <h1>{config.orgName} — public records</h1>
+  <p>
+    This is the public, read-only view of {config.orgName}'s records: the minutes,
+    notices, policies, filings, and announcements it has published, and a live
+    board showing whether each posting obligation is met.
+  </p>
+
+  <div class="card">
+    <p style="margin-top:0"><strong>The short version</strong></p>
+    <ul>
+      <li><a href={url("records/")}>{recs.length} published record{recs.length === 1 ? "" : "s"}</a>, grouped by type.</li>
+      <li><a href={url("announcements/")}>Announcements</a> as they are posted.</li>
+      <li>
+        <a href={url("board/")}>Is it posted?</a> —{" "}
+        {rows === null
+          ? "no data yet"
+          : `${counts.green} green, ${counts.amber} amber, ${counts.red} red, ${counts["no-data"]} no-data`}.
+      </li>
+    </ul>
+  </div>
+
+  <p class="muted">
+    The board shows only what has been published. An empty board means nothing has
+    been published yet — not that everything is in order.
+  </p>
+</Base>
