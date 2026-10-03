@@ -1,0 +1,19 @@
+{
+  "commit": "ca13fa94fe",
+  "digest": "ca13fa94fe86c48dc2317487003a6c2e33fbc424601659ac4c2efc9169baef9e",
+  "published_at": "2025-02-15T09:00:00Z",
+  "records": {
+    "added": [
+      "2025-02-15-what-do-the-river-sensors-measure"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1024",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

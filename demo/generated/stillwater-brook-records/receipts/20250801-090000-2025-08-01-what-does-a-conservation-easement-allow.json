@@ -1,0 +1,19 @@
+{
+  "commit": "173606bf09",
+  "digest": "173606bf095ce395abf057a71347038d0f658779da47cbd54055ed6b994184de",
+  "published_at": "2025-08-01T09:00:00Z",
+  "records": {
+    "added": [
+      "2025-08-01-what-does-a-conservation-easement-allow"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1048",
+  "standing": {
+    "amber": 0,
+    "green": 3,
+    "no_data": 0,
+    "red": 1
+  }
+}

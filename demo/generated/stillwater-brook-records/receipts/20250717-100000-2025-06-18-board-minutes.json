@@ -1,0 +1,19 @@
+{
+  "commit": "ca3fb428d9",
+  "digest": "ca3fb428d91166a294aba8688be0557c48afe7569714eba0f78c54bf60e3fcae",
+  "published_at": "2025-07-17T10:00:00Z",
+  "records": {
+    "added": [
+      "2025-06-18-board-minutes"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1045",
+  "standing": {
+    "amber": 0,
+    "green": 3,
+    "no_data": 0,
+    "red": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "commit": "1ae795e80f",
+  "digest": "1ae795e80fc906312d6f5b2d219bb99e53f37998b2d56099071758ad119b2714",
+  "published_at": "2026-04-01T09:00:00Z",
+  "records": {
+    "added": [
+      "2026-04-01-how-is-my-donation-used"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1079",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

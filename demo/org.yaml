@@ -1,0 +1,35 @@
+# demo/org.yaml — the ONLY place the demonstration client's identity lives.
+#
+# Per docs/adr/0001: every record in demo/generated/ is produced by demo/seed.py
+# from the templates in demo/templates/, with the fields below substituted in.
+# Nothing else in the repository may carry this organization's name, short name,
+# or domain — CI (.github/workflows/demo.yml -> demo/check_name_leak.py) fails if
+# it does. To rebrand the demo: edit the five identity fields below, run
+#     python3 demo/seed.py
+# and commit the regenerated demo/generated/. That is the whole rename.
+#
+# This is a fictional organization. A real client never starts from the seed;
+# they instantiate the empty records template and fill it with their own records.
+
+# --- identity (edit these to rebrand) --------------------------------------- #
+name: Stillwater Brook Watershed Alliance
+short_name: Stillwater Brook
+domain: stillwaterbrook.example.org
+contact: clerk@stillwaterbrook.example.org
+accent: "#2f6f4e"
+
+# --- logo ------------------------------------------------------------------- #
+# A simple, dependency-free SVG mark: a brook glyph in the accent colour with the
+# short name beside it. seed.py substitutes {{ accent }} and {{ short_name }} and
+# writes the result to the generated vault's assets/logo.svg, so the logo renames
+# itself along with everything else.
+logo: |
+  <svg xmlns="http://www.w3.org/2000/svg" width="320" height="64" viewBox="0 0 320 64" role="img" aria-label="{{ short_name }}">
+    <title>{{ short_name }}</title>
+    <g fill="none" stroke="{{ accent }}" stroke-width="4" stroke-linecap="round">
+      <path d="M8 24 q12 -12 24 0 t24 0" />
+      <path d="M8 36 q12 -12 24 0 t24 0" />
+      <path d="M8 48 q12 -12 24 0 t24 0" />
+    </g>
+    <text x="80" y="40" font-family="Georgia, 'Times New Roman', serif" font-size="24" fill="{{ accent }}">{{ short_name }}</text>
+  </svg>

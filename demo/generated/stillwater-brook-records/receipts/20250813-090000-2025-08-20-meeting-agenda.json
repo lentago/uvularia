@@ -1,0 +1,19 @@
+{
+  "commit": "4f3bfd5e4a",
+  "digest": "4f3bfd5e4a83a7fec72fc30d6974dbcd3f491d0e8fa46548c77d7a9d10a857e7",
+  "published_at": "2025-08-13T09:00:00Z",
+  "records": {
+    "added": [
+      "2025-08-20-meeting-agenda"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1050",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

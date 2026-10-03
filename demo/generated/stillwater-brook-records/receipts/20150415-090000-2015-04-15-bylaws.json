@@ -1,0 +1,19 @@
+{
+  "commit": "4cdaec4699",
+  "digest": "4cdaec469927c45ace94b01df8975e2f83872bc40a0045bb6ff1757e20194319",
+  "published_at": "2015-04-15T09:00:00Z",
+  "records": {
+    "added": [
+      "2015-04-15-bylaws"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1001",
+  "standing": {
+    "amber": 0,
+    "green": 0,
+    "no_data": 4,
+    "red": 0
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "commit": "ca64dc93d7",
+  "digest": "ca64dc93d70494ede1402db038ce1bbad1f0507f3a735975c32e1ca3a6238359",
+  "published_at": "2024-12-01T09:00:00Z",
+  "records": {
+    "added": [
+      "2024-12-01-is-the-visitor-center-open-today"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1013",
+  "standing": {
+    "amber": 0,
+    "green": 3,
+    "no_data": 0,
+    "red": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "commit": "6a0f2eae40",
+  "digest": "6a0f2eae40a7878f8699afb89dc607446fedfa3add47e0f6c16e37bae701d3fb",
+  "published_at": "2025-04-23T09:00:00Z",
+  "records": {
+    "added": [
+      "2025-04-22-stewardship-permit"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1033",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

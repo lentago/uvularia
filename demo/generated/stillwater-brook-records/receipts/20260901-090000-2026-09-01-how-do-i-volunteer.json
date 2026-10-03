@@ -1,0 +1,19 @@
+{
+  "commit": "505157a47a",
+  "digest": "505157a47ad8d092a575cf217491fd5269a181ece1da9452176bfd811905764f",
+  "published_at": "2026-09-01T09:00:00Z",
+  "records": {
+    "added": [
+      "2026-09-01-how-do-i-volunteer"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1096",
+  "standing": {
+    "amber": 0,
+    "green": 3,
+    "no_data": 0,
+    "red": 1
+  }
+}

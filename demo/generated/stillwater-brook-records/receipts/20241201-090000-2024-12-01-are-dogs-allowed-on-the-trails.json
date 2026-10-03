@@ -1,0 +1,19 @@
+{
+  "commit": "8f57b31ccc",
+  "digest": "8f57b31ccc6c71d95a421240a39c404db02b56ebc86600160cd2fd40ec4a7936",
+  "published_at": "2024-12-01T09:00:00Z",
+  "records": {
+    "added": [
+      "2024-12-01-are-dogs-allowed-on-the-trails"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1014",
+  "standing": {
+    "amber": 0,
+    "green": 3,
+    "no_data": 0,
+    "red": 1
+  }
+}

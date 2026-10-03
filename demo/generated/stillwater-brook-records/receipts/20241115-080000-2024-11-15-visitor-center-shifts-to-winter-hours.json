@@ -1,0 +1,19 @@
+{
+  "commit": "0fbccb7558",
+  "digest": "0fbccb75580f9f8e109db6c6882aa7c0fe274984792cb4879cffc0bb5484f46a",
+  "published_at": "2024-11-15T08:00:00Z",
+  "records": {
+    "added": [
+      "2024-11-15-visitor-center-shifts-to-winter-hours"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1011",
+  "standing": {
+    "amber": 0,
+    "green": 3,
+    "no_data": 1,
+    "red": 0
+  }
+}

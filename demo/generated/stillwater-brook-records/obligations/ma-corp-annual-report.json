@@ -1,0 +1,15 @@
+{
+  "id": "ma-corp-annual-report",
+  "title": "Annual report filed with the Secretary of the Commonwealth (nonprofit corporation)",
+  "pack": "ma",
+  "record_type": "report",
+  "subjects": [
+    "annual-report",
+    "secretary-of-state"
+  ],
+  "source": "M.G.L. c. 180, \u00a7 26A \u2014 annual report of a nonprofit corporation filed with the Secretary of the Commonwealth.",
+  "disclaimer_ref": "policy.disclaimer",
+  "cadence": {
+    "months": 12
+  }
+}

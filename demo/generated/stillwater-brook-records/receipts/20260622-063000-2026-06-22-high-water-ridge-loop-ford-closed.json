@@ -1,0 +1,19 @@
+{
+  "commit": "ef2b7fe891",
+  "digest": "ef2b7fe891363caaa63519a79b0d4faf901d9fbfafa2352e8f856f1263c2aae1",
+  "published_at": "2026-06-22T06:30:00Z",
+  "records": {
+    "added": [
+      "2026-06-22-high-water-ridge-loop-ford-closed"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1089",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="64" viewBox="0 0 320 64" role="img" aria-label="Stillwater Brook">
+  <title>Stillwater Brook</title>
+  <g fill="none" stroke="#2f6f4e" stroke-width="4" stroke-linecap="round">
+    <path d="M8 24 q12 -12 24 0 t24 0" />
+    <path d="M8 36 q12 -12 24 0 t24 0" />
+    <path d="M8 48 q12 -12 24 0 t24 0" />
+  </g>
+  <text x="80" y="40" font-family="Georgia, 'Times New Roman', serif" font-size="24" fill="#2f6f4e">Stillwater Brook</text>
+</svg>
