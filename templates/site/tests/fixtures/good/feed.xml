@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>urn:uvularia:corpus:a1b2c3d4e5f60718293a4b5c6d7e8f901a2b3c4d5e6f708192a3b4c5d6e7f809</id>
+  <title>Announcements</title>
+  <updated>2026-09-11T09:20:00Z</updated>
+  <entry>
+    <id>urn:uvularia:record:2026-09-11-trail-open</id>
+    <title>The north trail is open for the season</title>
+    <updated>2026-09-11T09:20:00Z</updated>
+    <content type="text">The north trail reopened after bridge repairs. Please stay on marked paths.</content>
+  </entry>
+</feed>

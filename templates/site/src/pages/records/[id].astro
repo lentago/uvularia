@@ -1,0 +1,84 @@
+---
+import Base from "../../layouts/Base.astro";
+import { url } from "../../lib/url.mjs";
+import { records, bundle, receipt, typeOf } from "../../lib/published.mjs";
+import { renderMarkdown } from "../../lib/markdown.mjs";
+
+// The bundle entry shape (schema/bundle.schema.json), typed here so the page is
+// type-checked even though the data is read from untyped JSON.
+interface Entry {
+  doc_id: string;
+  title: string;
+  tags: string[];
+  volatility: string;
+  body: string;
+  path: string;
+  certainty: string;
+  archived: boolean;
+}
+
+export function getStaticPaths() {
+  return (records() as Entry[]).map((r) => ({ params: { id: r.doc_id }, props: { record: r } }));
+}
+
+const { record } = Astro.props as { record: Entry };
+const b = bundle();
+const rcpt = receipt();
+
+// mitchella's certainty vocabulary, said plainly for a reader.
+const CERTAINTY = {
+  verified: "verified — from the original document",
+  inferred: "reported — summarised, not from the source text",
+  unknown: "certainty not recorded",
+};
+
+const bodyHtml = renderMarkdown(record.body || "", { dropFirstH1: true });
+
+// How this record relates to the receipt that published the current corpus.
+let publishNote = null;
+if (rcpt) {
+  if ((rcpt.records.added || []).includes(record.doc_id)) publishNote = "Added in this publish.";
+  else if ((rcpt.records.changed || []).includes(record.doc_id)) publishNote = "Updated in this publish.";
+}
+---
+
+<Base title={record.title}>
+  <p class="muted"><a href={url("records/")}>← All records</a></p>
+  <h1>{record.title}</h1>
+
+  <p class="muted">
+    <code>{record.doc_id}</code> · type: {typeOf(record)} · {CERTAINTY[record.certainty] ?? record.certainty}
+    {record.archived ? " · archived" : ""}
+  </p>
+
+  {
+    record.tags?.length > 0 && (
+      <p class="muted">Tags: {record.tags.map((t) => <code>{t}</code>).reduce((a, b) => [a, " ", b])}</p>
+    )
+  }
+
+  <article set:html={bodyHtml} />
+
+  <div class="card" style="margin-top:2rem">
+    <p style="margin-top:0"><strong>How this was published</strong></p>
+    {
+      rcpt ? (
+        <ul style="margin-bottom:0">
+          <li>Part of corpus <code>{b?.digest?.slice(0, 16)}…</code></li>
+          <li>Published at <time datetime={rcpt.published_at}>{rcpt.published_at}</time> (server-side time)</li>
+          {rcpt.commit && <li>From commit <code>{rcpt.commit}</code></li>}
+          {rcpt.run_url && (
+            <li>
+              <a href={rcpt.run_url}>The Actions run that published it</a>
+            </li>
+          )}
+          {publishNote && <li>{publishNote}</li>}
+        </ul>
+      ) : (
+        <p class="muted" style="margin-bottom:0">
+          The receipt for the current corpus was not available at build time.
+        </p>
+      )
+    }
+  </div>
+</Base>

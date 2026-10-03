@@ -31,7 +31,22 @@ def _expected_files():
             yield Path("schema") / "examples" / p.name
 
 
+SITE_SCHEMA = ROOT / "templates" / "site" / "schema"
+SITE_SCHEMAS = ["bundle.schema.json", "standing.schema.json"]
+
+
 class VendoredCoreMatchesCanonical(unittest.TestCase):
+    def test_site_template_schemas_are_byte_identical(self):
+        """templates/site vendors the two schemas its build validates against."""
+        drift = []
+        for name in SITE_SCHEMAS:
+            canon, vend = CANON / "schema" / name, SITE_SCHEMA / name
+            if not vend.exists():
+                drift.append(f"missing in site template: schema/{name}")
+            elif canon.read_bytes() != vend.read_bytes():
+                drift.append(f"differs from canonical: schema/{name}")
+        self.assertEqual(drift, [], "templates/site/schema/ has drifted from core/schema/:\n  " + "\n  ".join(drift))
+
     def test_every_synced_file_is_byte_identical(self):
         drift = []
         for rel in _expected_files():

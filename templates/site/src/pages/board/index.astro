@@ -1,0 +1,89 @@
+---
+import Base from "../../layouts/Base.astro";
+import StateBadge from "../../components/StateBadge.astro";
+import { url } from "../../lib/url.mjs";
+import { standing, records, meta } from "../../lib/published.mjs";
+
+// THE RULE (carried over from drosera's status page): a missing or unreadable
+// standing.json renders as "no data" for everything — never a fake green — and we
+// say when the data was last fetched. standing() returns null when the file was
+// absent at build time; an empty array means it was published but declares no
+// obligations. Those are different states and the board says which.
+const rows = standing();
+const m = meta();
+const corpusIds = new Set(records().map((r) => r.doc_id));
+
+function gapPhrase(gap) {
+  if (gap === null || gap === undefined) return "—";
+  if (gap < 0) return `${gap} (${-gap} day${-gap === 1 ? "" : "s"} ahead)`;
+  if (gap > 0) return `${gap} (${gap} day${gap === 1 ? "" : "s"} over)`;
+  return "0 (on the deadline)";
+}
+---
+
+<Base title="Is it posted?">
+  <h1>Is it posted?</h1>
+  <p>
+    One row per posting obligation. Each shows its state in words — green, amber,
+    red, or no data — the record that satisfies it, the deadline, and the
+    server-side time it was published.
+  </p>
+
+  {
+    rows === null ? (
+      <div class="notice">
+        <p style="margin-top:0">
+          <StateBadge state="no-data" /> The board could not read the vault's
+          <code>standing.json</code>. Nothing is shown as met.
+        </p>
+        <p style="margin-bottom:0" class="muted">
+          Data last fetched {m.fetched_at ? <time datetime={m.fetched_at}>{m.fetched_at}</time> : "— unknown"}.
+          This is not a passing state — it means the board has no data to show yet.
+        </p>
+      </div>
+    ) : rows.length === 0 ? (
+      <p class="notice">No obligations are declared in the vault yet.</p>
+    ) : (
+      <>
+        <table>
+          <thead>
+            <tr>
+              <th>Obligation</th>
+              <th>State</th>
+              <th>Satisfied by</th>
+              <th>Deadline</th>
+              <th>Published at</th>
+              <th>Gap (days)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr>
+                <td><code>{r.id}</code></td>
+                <td><StateBadge state={r.state} /></td>
+                <td>
+                  {r.satisfied_by ? (
+                    corpusIds.has(r.satisfied_by) ? (
+                      <a href={url(`records/${r.satisfied_by}/`)}><code>{r.satisfied_by}</code></a>
+                    ) : (
+                      <code>{r.satisfied_by}</code>
+                    )
+                  ) : (
+                    <span class="muted">—</span>
+                  )}
+                </td>
+                <td>{r.deadline ?? <span class="muted">—</span>}</td>
+                <td>{r.published_at ? <time datetime={r.published_at}>{r.published_at}</time> : <span class="muted">—</span>}</td>
+                <td>{gapPhrase(r.gap)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p class="muted" style="margin-top:1rem">
+          Data last fetched {m.fetched_at ? <time datetime={m.fetched_at}>{m.fetched_at}</time> : "— unknown"}.
+          “No data” is not a pass — it means there is nothing to show for that row.
+        </p>
+      </>
+    )
+  }
+</Base>

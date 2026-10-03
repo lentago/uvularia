@@ -1,0 +1,30 @@
+---
+import Base from "../../layouts/Base.astro";
+import { feedXml } from "../../lib/published.mjs";
+import { parseAtom } from "../../lib/atom.mjs";
+import { url } from "../../lib/url.mjs";
+
+const entries = parseAtom(feedXml());
+---
+
+<Base title="Announcements">
+  <h1>Announcements</h1>
+  <p class="muted">
+    The same feed is available as <a href={url("feed.xml")}>Atom</a> for a reader.
+  </p>
+  {
+    entries.length === 0 ? (
+      <p class="notice">No announcements have been published yet.</p>
+    ) : (
+      <ul style="list-style:none;padding:0">
+        {entries.map((e) => (
+          <li class="card" style="margin-bottom:1rem">
+            <h2 style="margin:0 0 0.25rem">{e.title}</h2>
+            {e.updated && <p class="muted" style="margin:0 0 0.5rem"><time datetime={e.updated}>{e.updated}</time></p>}
+            <p style="margin:0">{e.content}</p>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Base>

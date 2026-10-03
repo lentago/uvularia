@@ -1,0 +1,36 @@
+---
+// A compliance state shown as a WORD with a colour behind it — never colour
+// alone (accessibility, and the board's whole point is to be read, not decoded).
+// The four states come straight from standing.schema.json.
+interface Props {
+  state: "green" | "amber" | "red" | "no-data" | string;
+}
+const { state } = Astro.props;
+const WORDS = { green: "green", amber: "amber", red: "red", "no-data": "no data" };
+const COLOURS = {
+  green: { bg: "#1b7a3d", fg: "#ffffff" },
+  amber: { bg: "#b36b00", fg: "#ffffff" },
+  red: { bg: "#b3261e", fg: "#ffffff" },
+  "no-data": { bg: "#6a6a6a", fg: "#ffffff" },
+};
+const word = WORDS[state] ?? state;
+const c = COLOURS[state] ?? COLOURS["no-data"];
+---
+
+<span
+  class="badge"
+  style={`background:${c.bg};color:${c.fg}`}
+  role="status"
+  aria-label={`state: ${word}`}
+>{word}</span>
+
+<style>
+  .badge {
+    display: inline-block;
+    padding: 0.12em 0.6em;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+</style>

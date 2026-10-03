@@ -1,0 +1,26 @@
+{
+  "digest": "a1b2c3d4e5f60718293a4b5c6d7e8f901a2b3c4d5e6f708192a3b4c5d6e7f809",
+  "published_at": "2026-10-01T14:03:11Z",
+  "records": [
+    {
+      "doc_id": "2026-09-14-september-meeting-notice",
+      "title": "Notice of September board meeting",
+      "tags": ["board", "2026", "notice"],
+      "volatility": "stable",
+      "body": "# Notice of September board meeting\n\nThe board will meet on **2026-09-16** at 7:00 p.m.\n\n- Location: the community room\n- Agenda: budget, parking, annual meeting\n\nPosted 2026-09-11.",
+      "path": "records/notice/2026-09-14-september-meeting-notice.md",
+      "certainty": "verified",
+      "archived": false
+    },
+    {
+      "doc_id": "2026-09-16-board-minutes",
+      "title": "Board meeting minutes, 2026-09-16",
+      "tags": ["board", "2026", "minutes"],
+      "volatility": "stable",
+      "body": "# Board meeting minutes, 2026-09-16\n\nThe board met on 2026-09-16. Present: five members.\n\nThe board approved the 2027 budget and reviewed the parking policy.",
+      "path": "records/minutes/2026-09-16-board-minutes.md",
+      "certainty": "verified",
+      "archived": false
+    }
+  ]
+}
