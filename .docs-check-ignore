@@ -1,2 +1,11 @@
 # Globs matched by the fleet docs-check against a source file path or a link
 # target (lentago/shared-workflows ci/check_docs_links.py). One per line.
+
+# The vault template vendors a copy of core/. Its docs link to upstream paths
+# (../CLAUDE.md, core/tests/) that do not exist inside a vault; those same links
+# are already link-checked in the canonical core/ in this repo, so skip the copy.
+templates/records/core/**
+
+# The record template carries an illustrative link to an example record a client
+# has not created yet. It is a sample to copy, not a live page.
+templates/records/templates/record.md
