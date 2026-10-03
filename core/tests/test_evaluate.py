@@ -106,6 +106,47 @@ class EvaluateMatrix(unittest.TestCase):
         self.assertEqual(errors, [], f"standing output failed its schema: {errors}")
 
 
+class DuplicateObligationIds(unittest.TestCase):
+    """evaluate() refuses to emit standing when obligation ids are not unique."""
+
+    # A minimal but schema-valid obligation body shared by both fixture files.
+    _OB = (
+        "- id: dupe\n"
+        "  title: \"A rule that appears twice\"\n"
+        "  pack: test\n"
+        "  record_type: notice\n"
+        "  subjects: [x]\n"
+        "  source: \"test source\"\n"
+        "  disclaimer_ref: policy.yaml#d\n"
+        "  lead:\n"
+        "    hours: 48\n"
+    )
+
+    def test_duplicate_ids_raise_value_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "obligations").mkdir()
+            (root / "obligations" / "a.yaml").write_text(self._OB, encoding="utf-8")
+            (root / "obligations" / "b.yaml").write_text(self._OB, encoding="utf-8")
+            with self.assertRaises(ValueError) as ctx:
+                evaluate.evaluate(root, now=NOW)
+            self.assertIn("dupe", str(ctx.exception))
+
+    def test_duplicate_ids_main_exits_nonzero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "obligations").mkdir()
+            # One YAML, one JSON — mirrors the real-world case from the issue.
+            (root / "obligations" / "rule.yaml").write_text(self._OB, encoding="utf-8")
+            (root / "obligations" / "rule.json").write_text(
+                '{"id": "dupe", "title": "t", "pack": "test", "record_type": "notice",'
+                ' "subjects": ["x"], "source": "s", "disclaimer_ref": "p",'
+                ' "lead": {"hours": 48}}\n',
+                encoding="utf-8",
+            )
+            self.assertEqual(evaluate.main([str(root)]), 1)
+
+
 class EmptyAndMissing(unittest.TestCase):
     """A vault with rules but no records or receipts is all no-data, never green —
     invariant 5. Missing directories must not crash the evaluator."""
