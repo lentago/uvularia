@@ -1,0 +1,32 @@
+# ============================================================================
+# test-site — the site template's own tests, run in THIS repo on every PR
+# ============================================================================
+# templates/site/ ships build-check.yml for the client's repo, but nothing in
+# lentago/uvularia's CI exercised the template itself until this workflow. No
+# `on:`-level path filter: a path-filtered required check never fires on
+# non-matching PRs and is held "Expected" forever (the fleet's deadlock rule).
+# ============================================================================
+name: site-template
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  test-site:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: templates/site/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
