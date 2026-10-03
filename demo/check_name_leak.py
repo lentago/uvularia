@@ -22,6 +22,7 @@ Python 3.12, standard library only.
 """
 
 import argparse
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -60,6 +61,14 @@ def read_identity(org_yaml=ORG_YAML):
             if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
                 value = value[1:-1]
             needles.append((key, value))
+    # The slug form matters too: seed.py names the generated vault
+    # <slug(short_name)>-records, and a URL or path carrying that slug is a leak
+    # the plain strings would miss (it is what a hand-written example URL does).
+    for key, value in list(needles):
+        if key == "short_name":
+            slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+            if slug and slug != value.lower():
+                needles.append(("short_name_slug", slug))
     found = {k for k, _ in needles}
     missing = [f for f in IDENTITY_FIELDS if f not in found]
     if missing:

@@ -66,7 +66,7 @@ A draft policy. No external links here.
 """
 
 INDEX = """\
-# Stillwater records
+# Fixture records
 
 - [September board minutes](records/minutes/2026-09-16-board-minutes.md)
 """
