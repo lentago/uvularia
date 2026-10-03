@@ -25,15 +25,7 @@ the output; Claude writes the code and prose. Chris is an infrastructure
 operator, not a software engineer. Please don't read this repo as a portfolio of
 coding ability.
 
-**Status: Phase 0 complete, pending its first timed dry-run.** The core (schema,
-validator, obligation evaluator, bundle format), the records and site templates,
-the Issue-form intake, the publish workflow, the public board, and the
-demonstration client are all built and tested. What a client needs to adopt it is
-written: [`ADOPTION.md`](ADOPTION.md) and a checkpointed [`DRY-RUN.md`](DRY-RUN.md).
-No tier is claimed yet: a tier is earned by an operator running the dry-run into a
-fresh org and committing a receipt under [`receipts/`](receipts/README.md). When
-the first receipt lands, the tier badge appears. The concept and the plan are in
-[`docs/concept.md`](docs/concept.md).
+**Status: Phase 0 complete and run once.** The vault and board stand as a **Kit**: the first timed dry-run ([receipt](receipts/2026-10-03-agent-run.md)) reached a green board in under fifteen minutes and found four adoption-path defects, all filed. The demonstration client is live: [the board](https://lentago.github.io/uvularia-demo-site/board/), its [vault](https://github.com/lentago/uvularia-demo-records), its [site](https://github.com/lentago/uvularia-demo-site). Clients start from [`uvularia-records-template`](https://github.com/lentago/uvularia-records-template) and [`uvularia-site-template`](https://github.com/lentago/uvularia-site-template); see [`ADOPTION.md`](ADOPTION.md).
 
 ## Who this is for
 

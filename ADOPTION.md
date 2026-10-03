@@ -12,11 +12,11 @@ you, so nobody can take it down. Adding or correcting a record becomes a
 two-minute pull request with a small blast radius, and you can show, live and
 with a timestamp, that what had to be posted was posted on time.
 
-**How long:** not yet timed — no operator has recorded a receipt yet. Treat any
-guess as a guess until the table in [Receipt](#receipt) says otherwise. See
-[DRY-RUN.md](DRY-RUN.md) for the step-by-step drill that produces that number.
+**How long:** about half an hour of working time, and under fifteen minutes to the
+first green row, in the first timed run ([Receipt](#receipt)). Your run is the one
+that counts; [DRY-RUN.md](DRY-RUN.md) is the drill that produces the number.
 
-**Status of this runbook:** never run — see [Receipt](#receipt).
+**Status of this runbook:** run once, 2026-10-03 — see [Receipt](#receipt).
 
 ## What you get
 
@@ -91,13 +91,13 @@ and not part of this.
 
 You click **Use this template** twice, in this order.
 
-1. **`<org>-records`** (the vault), made from `templates/records/`. Create it
+1. **`<org>-records`** (the vault), made from [`lentago/uvularia-records-template`](https://github.com/lentago/uvularia-records-template) (the template repo synced from `templates/records/` here). Create it
    **public**. The file you edit is **`.github/CODEOWNERS`** — replace the
    `@REPLACE-WITH-YOUR-REVIEWER` placeholder with the GitHub team or usernames in
    your org who must approve a change. (You also give your org a name in
    `index.md`, keep the obligation rules in `obligations/` that apply to you, and
    glance at `validate.toml` — but the one file that gates safety is CODEOWNERS.)
-2. **`<org>-site`** (the site and board), made from `templates/site/`. The file
+2. **`<org>-site`** (the site and board), made from [`lentago/uvularia-site-template`](https://github.com/lentago/uvularia-site-template) (synced from `templates/site/` here). The file
    you edit is **`site.config.ts`** — point `publishedBaseUrl` at your vault's
    published artifacts and set `orgName`, `contact`, `accent`, and `base`.
 
@@ -128,19 +128,12 @@ remove.
 
 ## Receipt
 
-Nobody has run this end to end yet. When you do, fill this in — and commit the
-same values as a dated receipt under [`receipts/`](receipts/README.md), which is
-what the tier picker in [lupinus](https://github.com/lentago/lupinus) cites.
-
-| Field | Value |
-|---|---|
-| Date | |
-| Operator | |
-| Target org | |
-| **Total elapsed** | |
-| All checks green? (Y/N) | |
-| Slowest step | |
-| Notes | |
+The first timed run: [2026-10-03, agent run](receipts/2026-10-03-agent-run.md) —
+**13 min 39 s to the first green row**, about **28 min of working time** for the
+whole drill (55 min wall clock including the operator's own network outage), all
+pull-request checks green, four adoption-path defects found and filed. Later runs
+are added to [`receipts/`](receipts/) and the newest one is what the tier row in
+lupinus cites.
 
 ## Dependencies and exits
 
@@ -158,6 +151,23 @@ takes it offline immediately; **Settings → Danger Zone** archives (keeps histo
 readable) or deletes the repository. Your records survive in any clone you kept.
 
 ## Heads up — the traps we found
+
+> **Heads up — two traps at the intake door, found in the first dry-run
+> ([receipt](receipts/2026-10-03-agent-run.md)).** Until
+> [#31](https://github.com/lentago/uvularia/issues/31) and
+> [#30](https://github.com/lentago/uvularia/issues/30) land:
+>
+> 1. **Create the `add-record` label** in your records repo (Issues → Labels →
+>    New label, any colour) before anyone uses the "Add a record" form. The
+>    form applies that label and the intake workflow only runs when it is
+>    present; a fresh repo does not have it.
+> 2. **Allow Actions to open pull requests**: Settings → Actions → General →
+>    Workflow permissions → tick *Allow GitHub Actions to create and approve
+>    pull requests*. GitHub ships this off, and an org admin may have to set it
+>    at the org level. Without it, the intake workflow pushes the branch
+>    `intake/<issue number>` and then fails; the fallback is to open the pull
+>    request from that branch yourself (Code → Branches → New pull request).
+
 
 Reading the two templates surfaced these. Each has a plainer sibling in
 [DRY-RUN.md](DRY-RUN.md)'s checks.
