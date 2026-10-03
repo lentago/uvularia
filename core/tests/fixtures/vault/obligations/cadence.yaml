@@ -1,0 +1,37 @@
+# test-pack obligations — one rule kind per file, as a YAML list
+- id: cadence-green
+  title: "Conflict-of-interest policy reviewed every 12 months"
+  pack: test
+  record_type: policy
+  subjects: [cad-green]
+  source: "Annual review (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  cadence:
+    months: 12
+- id: cadence-red
+  title: "Conflict-of-interest policy reviewed every 12 months"
+  pack: test
+  record_type: policy
+  subjects: [cad-red]
+  source: "Annual review (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  cadence:
+    months: 12
+- id: cadence-amber
+  title: "Conflict-of-interest policy reviewed every 12 months"
+  pack: test
+  record_type: policy
+  subjects: [cad-amber]
+  source: "Annual review (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  cadence:
+    months: 12
+- id: cadence-nodata
+  title: "Conflict-of-interest policy reviewed every 12 months"
+  pack: test
+  record_type: policy
+  subjects: [cad-nd]
+  source: "Annual review (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  cadence:
+    months: 12
