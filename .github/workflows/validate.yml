@@ -1,0 +1,29 @@
+# ============================================================================
+# validate — the vault validator's own tests
+# ============================================================================
+# Runs core/tests/test_validate.py: the passing fixture vault must pass, and
+# every per-check fixture must fail its one check. Stdlib only, no dependencies.
+#
+# Deliberately NOT path-filtered, like schemas and docs-check. This is built to
+# serve as a required status check, and a required check whose workflow never
+# triggers is held "Expected" forever, deadlocking every non-matching PR. The
+# tests are cheap and exit in well under a second. git is present on the runner
+# for the no-deletion check's fixture.
+# ============================================================================
+
+name: validate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  test-validator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run the validator tests
+        run: python3 -m unittest core.tests.test_validate -v

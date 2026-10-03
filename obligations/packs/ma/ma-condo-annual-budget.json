@@ -1,0 +1,10 @@
+{
+  "id": "ma-condo-annual-budget",
+  "title": "Annual budget for common expenses prepared and made available to unit owners",
+  "pack": "ma",
+  "record_type": "report",
+  "subjects": ["budget", "annual-meeting"],
+  "source": "M.G.L. c. 183A, § 10(b) — trustees shall manage common areas and common expenses, which requires preparation of an annual budget.",
+  "disclaimer_ref": "policy.disclaimer",
+  "cadence": { "months": 12 }
+}

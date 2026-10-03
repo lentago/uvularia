@@ -1,0 +1,14 @@
+{
+  "obligation_id": "ma-oml-minutes-timely",
+  "as_of": "2026-10-03",
+  "records": [
+    {
+      "id": "2026-09-25-september-board-minutes",
+      "type": "minutes",
+      "status": "approved",
+      "effective": "2026-09-01",
+      "approved": "2026-09-25"
+    }
+  ],
+  "expected_state": "green"
+}
