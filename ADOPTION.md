@@ -69,7 +69,7 @@ phases. Phase 0 has no AI in it and stands entirely on its own.
   pleasant, but the repository never depends on it, and a plain text editor or
   the GitHub web editor works just as well.
 - To run the checks on your own machine (optional), Python 3.12 for the vault
-  and Node 20+ for the site. You do not need either to adopt; the checks run in
+  and Node 22+ for the site. You do not need either to adopt; the checks run in
   GitHub Actions.
 
 **Access you must already have:** permission to enable GitHub Pages, GitHub
@@ -187,8 +187,8 @@ Reading the two templates surfaced these. Each has a plainer sibling in
   `standing.json` renders every board row as "no data". The board never claims
   compliance it cannot show, so an empty board means "nothing published yet", not
   "all in order".
-- **The site needs Node 20+ and lags up to 30 minutes.** The site build requires
-  Node 20 or newer (the workflows pin it). The board redeploys on a 30-minute
+- **The site needs Node 22+ and lags up to 30 minutes.** The site build requires
+  Node 22 or newer (the workflows pin it). The board redeploys on a 30-minute
   schedule, so after you approve a record you may wait up to half an hour — or
   run **deploy-pages** by hand from the Actions tab to see it at once.
 - **A `base` mismatch hides your CSS.** A project Pages site at

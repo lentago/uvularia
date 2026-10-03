@@ -108,7 +108,7 @@ rather than ship a broken site.
 
 ## Run it yourself
 
-Everything a check runs, you can run. You need **Node 20 or newer**.
+Everything a check runs, you can run. You need **Node 22 or newer**.
 
 ```
 npm install        # once

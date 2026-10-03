@@ -94,7 +94,7 @@ a lab fixture, not a starting point.
 | [`ADOPTION.md`](ADOPTION.md) | how a client adopts Phase 0: what it needs, what it costs, the exits, the traps |
 | [`DRY-RUN.md`](DRY-RUN.md) | the checkpointed drill from "Use this template" to a green board, with a receipt |
 | [`receipts/`](receipts/README.md) | uvularia's own adoption receipts; the tier picker cites the latest |
-| `templates/` | the three repository templates, once Phase 0 lands |
+| `templates/` | the records and site templates (the Ask-rules template is Phase 1) |
 | `core/` | the record and obligation schemas, the validator, the evaluator, the bundle format |
 | `demo/` | `org.yaml` and the seed generator for the demonstration client |
 
