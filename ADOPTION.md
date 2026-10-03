@@ -152,21 +152,23 @@ readable) or deletes the repository. Your records survive in any clone you kept.
 
 ## Heads up — the traps we found
 
-> **Heads up — two traps at the intake door, found in the first dry-run
-> ([receipt](receipts/2026-10-03-agent-run.md)).** Until
-> [#31](https://github.com/lentago/uvularia/issues/31) and
-> [#30](https://github.com/lentago/uvularia/issues/30) land:
+> **Heads up — one setting worth turning on at the intake door, found in the
+> first dry-run ([receipt](receipts/2026-10-03-agent-run.md)).**
 >
-> 1. **Create the `add-record` label** in your records repo (Issues → Labels →
->    New label, any colour) before anyone uses the "Add a record" form. The
->    form applies that label and the intake workflow only runs when it is
->    present; a fresh repo does not have it.
-> 2. **Allow Actions to open pull requests**: Settings → Actions → General →
->    Workflow permissions → tick *Allow GitHub Actions to create and approve
->    pull requests*. GitHub ships this off, and an org admin may have to set it
->    at the org level. Without it, the intake workflow pushes the branch
->    `intake/<issue number>` and then fails; the fallback is to open the pull
->    request from that branch yourself (Code → Branches → New pull request).
+> **Allow Actions to open pull requests**: Settings → Actions → General →
+> Workflow permissions → tick *Allow GitHub Actions to create and approve pull
+> requests*. GitHub ships this **off**, and an org admin may have to set it at the
+> org level. With it off the intake door still works — it scaffolds the record,
+> pushes the branch `intake/<issue number>`, and comments a **one-click compare
+> link** on the issue to open the pull request by hand; turning the setting on
+> just lets the workflow open that pull request for you. Either way nothing is
+> ever silently dropped.
+>
+> (The first dry-run also hit an `add-record` label the template no longer needs:
+> the intake workflow now detects the "Add a record" form by its own fields, so
+> there is no label to create.
+> [#31](https://github.com/lentago/uvularia/issues/31) and
+> [#30](https://github.com/lentago/uvularia/issues/30) closed this off.)
 
 
 Reading the two templates surfaced these. Each has a plainer sibling in
