@@ -5,7 +5,12 @@
     "satisfied_by": "2026-09-14-september-meeting-notice",
     "deadline": "2026-09-14",
     "published_at": "2026-09-11T09:20:00Z",
-    "gap": -3
+    "gap": -3,
+    "history": {
+      "window_days": 730,
+      "evaluated": 12,
+      "breaches": 2
+    }
   },
   {
     "id": "minutes-within-30-days",
@@ -13,7 +18,12 @@
     "satisfied_by": "2026-09-16-board-minutes",
     "deadline": "2026-10-05",
     "published_at": "2026-10-01T14:03:11Z",
-    "gap": -4
+    "gap": -4,
+    "history": {
+      "window_days": 730,
+      "evaluated": 8,
+      "breaches": 0
+    }
   },
   {
     "id": "annual-report-filed",
@@ -21,7 +31,8 @@
     "satisfied_by": null,
     "deadline": "2026-07-01",
     "published_at": null,
-    "gap": 94
+    "gap": 94,
+    "history": null
   },
   {
     "id": "conflict-of-interest-annual",
@@ -29,6 +40,7 @@
     "satisfied_by": null,
     "deadline": null,
     "published_at": null,
-    "gap": null
+    "gap": null,
+    "history": null
   }
 ]

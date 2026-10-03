@@ -19,6 +19,15 @@ function gapPhrase(gap) {
   if (gap > 0) return `${gap} (${gap} day${gap === 1 ? "" : "s"} over)`;
   return "0 (on the deadline)";
 }
+
+// The track record over a trailing window. A row shows the CURRENT state, so a
+// timely posting retires the red that late ones earned; history is what that
+// forgets. null is "no history yet" — not a zero-breach pass (invariant 5).
+function historyPhrase(h) {
+  if (!h) return null;
+  if (h.breaches > 0) return `late ${h.breaches} of the last ${h.evaluated}`;
+  return `none late in the last ${h.evaluated}`;
+}
 ---
 
 <Base title="Is it posted?">
@@ -26,7 +35,10 @@ function gapPhrase(gap) {
   <p>
     One row per posting obligation. Each shows its state in words — green, amber,
     red, or no data — the record that satisfies it, the deadline, and the
-    server-side time it was published.
+    server-side time it was published. The last column is the track record: how
+    often this rule was posted late over a trailing window, which the current
+    state alone cannot show. "No history yet" means there is no past deadline to
+    summarise — not a clean record.
   </p>
 
   {
@@ -54,6 +66,7 @@ function gapPhrase(gap) {
               <th>Deadline</th>
               <th>Published at</th>
               <th>Gap (days)</th>
+              <th>Track record</th>
             </tr>
           </thead>
           <tbody>
@@ -75,6 +88,9 @@ function gapPhrase(gap) {
                 <td>{r.deadline ?? <span class="muted">—</span>}</td>
                 <td>{r.published_at ? <time datetime={r.published_at}>{r.published_at}</time> : <span class="muted">—</span>}</td>
                 <td>{gapPhrase(r.gap)}</td>
+                <td>
+                  {historyPhrase(r.history) ?? <span class="muted" title="No past deadline in the window had a receipt-dated outcome. This is not a zero-breach pass.">no history yet</span>}
+                </td>
               </tr>
             ))}
           </tbody>

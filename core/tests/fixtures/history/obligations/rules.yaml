@@ -1,0 +1,37 @@
+# history-fixture obligations — exercising the trailing-window track record.
+#
+# Three rules, all lead/48h, kept apart by subject:
+#   * notice-history: six notices over three years, some posted late, so the
+#     window math and "a breach counts even after a later timely posting" can be
+#     checked at several window widths.
+#   * future-only: one notice published early for a deadline still ahead — a
+#     receipt-dated outcome, but no *past* deadline, so history is null.
+#   * unpublished-only: one notice with a past deadline but no receipt — no
+#     receipt-dated outcome, so it is never counted and history is null.
+- id: notice-history
+  title: "Meeting notice posted at least 48h before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [history-mtg]
+  source: "M.G.L. c. 30A, s. 20 (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+- id: future-only
+  title: "Meeting notice posted at least 48h before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [future-mtg]
+  source: "M.G.L. c. 30A, s. 20 (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+- id: unpublished-only
+  title: "Meeting notice posted at least 48h before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [unpublished-mtg]
+  source: "M.G.L. c. 30A, s. 20 (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
