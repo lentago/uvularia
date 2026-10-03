@@ -145,7 +145,7 @@ It carries the server-side timestamp of the publish — never an author's clock 
 **How long:** a minute.
 
 1. On the `published` branch, open [`receipts/`](receipts/README.md). There is one
-   file per publish, named `YYYY-MM-DD-<digest>.md`.
+   file per publish, named `<YYYY-MM-DDTHHMMSSZ>-<digest>.md` (the publish instant, so no two publishes share a file).
 2. Read the frontmatter: the corpus **digest** everyone pins, the **published_at**
    time, the **run URL** you can click to the exact Actions run, the **commit**,
    what records changed, and how the obligations stood.

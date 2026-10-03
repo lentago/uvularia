@@ -14,6 +14,7 @@ import json
 import shutil
 import sys
 import tempfile
+import re
 import unittest
 from pathlib import Path
 
@@ -84,7 +85,9 @@ class PublishBuildTest(unittest.TestCase):
     def test_receipt_validates_and_is_server_stamped(self):
         receipt_path = self.out / self.result["receipt"]
         # Named for the publish day and the digest.
-        self.assertEqual(receipt_path.name, f"2026-10-01-{self.result['digest']}.md")
+        # The name carries the publish instant (not just the day) so two publishes
+        # over an unchanged corpus never share a receipt file.
+        self.assertRegex(receipt_path.name, r"^2026-10-01T\d{6}Z-" + re.escape(self.result["digest"]) + r"\.md$")
         # Its frontmatter is the receipt object; read it the way the evaluator does.
         import evaluate
         fm = evaluate._frontmatter(receipt_path.read_text(encoding="utf-8"), receipt_path)

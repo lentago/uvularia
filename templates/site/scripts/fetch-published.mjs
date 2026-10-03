@@ -23,7 +23,7 @@
 // difference between "absent" and "invalid" is the whole point.
 //
 // RECEIPTS. The `published` branch carries one receipt per publish under
-// receipts/, named <YYYY-MM-DD>-<digest>.md, but serves no directory listing over
+// receipts/, named <YYYY-MM-DDTHHMMSSZ>-<digest>.md, but serves no directory listing over
 // a raw or Pages URL, and we must not modify the vault template to add an index.
 // So we fetch exactly the receipt that attests the *current* corpus: its name is
 // derivable from corpus-latest.json (published_at's date + digest, the same shape
@@ -80,10 +80,22 @@ function requireValid(name, schema, instance) {
   }
 }
 
-// The receipt filename core/bundle.py writes: "<date>-<digest>.md".
-function receiptName(bundle) {
-  const day = String(bundle.published_at).slice(0, 10);
-  return `${day}-${bundle.digest}.md`;
+// The receipt filenames core/bundle.py has written, newest convention first:
+//   "<YYYY-MM-DDTHHMMSSZ>-<digest>.md"  (publish instant; one file per publish)
+//   "<YYYY-MM-DD>-<digest>.md"          (older vaults; a same-day republish could overwrite)
+// We try the instant form, then fall back to the day form, so a site newer than
+// its vault's core still finds the receipt.
+function receiptNames(bundle) {
+  const at = String(bundle.published_at || "");
+  const day = at.slice(0, 10);
+  const stamp = at.replace("+00:00", "Z").replace(/[^0-9TZ]/g, "");
+  const instant = stamp.length >= 15
+    ? `${stamp.slice(0, 4)}-${stamp.slice(4, 6)}-${stamp.slice(6, 8)}T${stamp.slice(9, 15)}Z`
+    : null;
+  const names = [];
+  if (instant) names.push(`${instant}-${bundle.digest}.md`);
+  names.push(`${day}-${bundle.digest}.md`);
+  return names;
 }
 
 // --------------------------------------------------------------------------- //
@@ -146,8 +158,12 @@ export async function fetchPublished({ baseUrl, outDir }) {
 
   // --- the current corpus's receipt ----------------------------------------
   if (bundle) {
-    const name = receiptName(bundle);
-    const receipt = await readArtifact(baseUrl, `receipts/${name}`);
+    let name = null, receipt = { ok: false };
+    for (const candidate of receiptNames(bundle)) {
+      receipt = await readArtifact(baseUrl, `receipts/${candidate}`);
+      if (receipt.ok) { name = candidate; break; }
+    }
+    if (!name) name = receiptNames(bundle)[0];
     if (receipt.ok) {
       await writeFile(join(out, "receipts", name), receipt.text);
       meta.present.receipt = true;
