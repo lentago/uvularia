@@ -1,0 +1,10 @@
+{
+  "id": "ma-condo-meeting-notice",
+  "title": "Annual or special meeting notice posted at least 7 days before the meeting",
+  "pack": "ma",
+  "record_type": "notice",
+  "subjects": ["meetings", "annual-meeting"],
+  "source": "M.G.L. c. 183A, § 11 and typical condominium trust bylaws — written notice of the annual or special meeting of unit owners delivered at least 7 days before the meeting.",
+  "disclaimer_ref": "policy.disclaimer",
+  "lead": { "days": 7 }
+}

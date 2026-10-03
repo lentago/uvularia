@@ -1,0 +1,14 @@
+{
+  "obligation_id": "ma-condo-meeting-notice",
+  "as_of": "2026-10-05",
+  "records": [
+    {
+      "id": "2026-10-04-special-meeting-notice",
+      "type": "notice",
+      "status": "approved",
+      "effective": "2026-10-05",
+      "published_at": "2026-10-04T10:00:00Z"
+    }
+  ],
+  "expected_state": "red"
+}
