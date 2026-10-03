@@ -18,7 +18,7 @@ enabled: true
 # Pinned on purpose. A public box runs on Sonnet, not Opus: it is the cheaper,
 # faster tier and the triage here is not the hard kind. Pin an exact id so a
 # provider default never changes your box's behaviour without a release.
-model: claude-sonnet-4-6
+model: claude-sonnet-5-5
 
 # --- where the records come from -------------------------------------------- #
 # The base URL of your records vault's `published` branch (GitHub Pages). The box

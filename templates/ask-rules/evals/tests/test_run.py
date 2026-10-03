@@ -88,8 +88,8 @@ class Plumbing(unittest.TestCase):
         self.assertTrue(loc.startswith("http"))
 
     def test_scan_scalar_reads_nested_and_quoted(self):
-        text = "model: claude-sonnet-4-6\neval:\n  threshold: 0.8\n"
-        self.assertEqual(run._scan_scalar(text, "model"), "claude-sonnet-4-6")
+        text = "model: claude-sonnet-5-5\neval:\n  threshold: 0.8\n"
+        self.assertEqual(run._scan_scalar(text, "model"), "claude-sonnet-5-5")
         self.assertEqual(run._scan_scalar(text, "threshold"), "0.8")
 
     def test_main_dry_against_good_fixture_returns_zero(self):

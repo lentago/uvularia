@@ -368,7 +368,7 @@ def main(argv=None):
         return 1 if errors else 0
 
     # live
-    model = _scan_scalar(Path(args.policy).read_text(encoding="utf-8"), "model") or "claude-sonnet-4-6"
+    model = _scan_scalar(Path(args.policy).read_text(encoding="utf-8"), "model") or "claude-sonnet-5-5"
     threshold = args.threshold if args.threshold is not None else _policy_threshold(args.policy, "threshold", 0.8)
     warn_below = _policy_threshold(args.policy, "warn_below", max(threshold, 0.9))
     try:
