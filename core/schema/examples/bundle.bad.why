@@ -1,0 +1,1 @@
+entry "volatility" is "sometimes" (not in the low|medium|high enum) and the required "archived" flag is missing.
