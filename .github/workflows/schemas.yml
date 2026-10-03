@@ -26,3 +26,5 @@ jobs:
           python-version: '3.12'
       - name: Validate schema examples
         run: python3 core/schema/check_examples.py
+      - name: Obligation packs validate against the obligation schema
+        run: python3 obligations/check_packs.py
