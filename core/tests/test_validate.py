@@ -224,6 +224,39 @@ class ValidateTests(unittest.TestCase):
         problems = run_checks(self.root)
         self.assertTrue(any("intake/" in p and "index.md" in p for p in problems), problems)
 
+    def test_unique_obligation_ids_fails_on_duplicate(self):
+        # Two obligation files — one YAML and one JSON — both declaring the same id.
+        # Both filenames must appear in the problem message (naming both parties
+        # to the conflict satisfies the "plain message naming both files" requirement).
+        (self.root / "obligations" / "notice.yaml").write_text(
+            "- id: shared-obligation\n"
+            "  title: \"Notice rule (YAML)\"\n"
+            "  pack: test\n"
+            "  record_type: notice\n"
+            "  subjects: [meetings]\n"
+            "  source: \"test source\"\n"
+            "  disclaimer_ref: policy.yaml#d\n"
+            "  lead:\n"
+            "    hours: 48\n",
+            encoding="utf-8",
+        )
+        (self.root / "obligations" / "notice.json").write_text(
+            '{"id": "shared-obligation", "title": "Notice rule (JSON)",'
+            ' "pack": "test", "record_type": "notice", "subjects": ["meetings"],'
+            ' "source": "test source", "disclaimer_ref": "policy.yaml#d",'
+            ' "lead": {"hours": 48}}\n',
+            encoding="utf-8",
+        )
+        problems = run_checks(self.root)
+        self.assertTrue(
+            any("notice.yaml" in p and "notice.json" in p for p in problems),
+            f"expected both file names in one problem message, got: {problems}",
+        )
+        self.assertTrue(
+            any("shared-obligation" in p for p in problems),
+            f"expected the duplicate id in the message, got: {problems}",
+        )
+
     # --- the toggle itself -------------------------------------------------- #
 
     def test_a_disabled_check_does_not_run(self):
