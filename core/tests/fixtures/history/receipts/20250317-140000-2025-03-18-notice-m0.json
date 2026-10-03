@@ -1,0 +1,19 @@
+{
+  "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "published_at": "2025-03-17T14:00:00Z",
+  "run_url": "https://github.com/example-org/example-records/actions/runs/0",
+  "commit": "abc1234",
+  "records": {
+    "added": [
+      "2025-03-18-notice-m0"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "standing": {
+    "green": 0,
+    "amber": 0,
+    "red": 0,
+    "no_data": 0
+  }
+}

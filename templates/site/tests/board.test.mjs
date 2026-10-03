@@ -66,6 +66,16 @@ expect("board renders a real green badge", good.includes(GREEN_SWATCH));
 expect("board links the satisfying record", good.includes("records/2026-09-16-board-minutes/"));
 expect("board says when data was last fetched", /data last fetched/i.test(good));
 
+// --- the track record column (history) --------------------------------------
+// The good fixture carries one row with breaches (12 evaluated, 2 late), one
+// clean row (8 evaluated, 0 late), and two rows with null history. Assert the
+// late phrase, the clean phrase, and the "no history yet" fallback all render —
+// and that a null history is never dressed up as a zero-breach phrase.
+expect('board shows a late track record ("late 2 of the last 12")', good.includes("late 2 of the last 12"));
+expect('board shows a clean track record ("none late in the last 8")', good.includes("none late in the last 8"));
+expect('board falls back to "no history yet" for a null history', good.includes("no history yet"));
+expect("a null history never renders as a zero-breach phrase", !/late 0 of the last/.test(good));
+
 // --- 2. standing.json absent: no data, never a fake green -------------------
 console.log("\n# building with standing.json absent");
 const tmp = mkdtempSync(join(tmpdir(), "uvularia-nostanding-"));
