@@ -1,0 +1,7 @@
+# Globs matched by the fleet docs-check against a source file path or a link
+# target (lentago/shared-workflows ci/check_docs_links.py). One per line.
+
+# core/README.md links forward to core/evaluate.md, which a parallel PR (the
+# obligation evaluator) is adding. This keeps the link check green until that
+# file lands; remove this line once core/evaluate.md exists.
+evaluate.md
