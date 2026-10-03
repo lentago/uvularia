@@ -99,8 +99,8 @@ never from a vault checkout.
 | `records[]` | One entry per published record. | A dropped or malformed entry silently removes a record from answers. |
 
 Each entry is mitchella's wiki-loader shape: `doc_id`, `title`, `tags`,
-`volatility` (`low`/`medium`/`high` — how often the record is expected to
-change), `body`, `path`, `certainty` (`verified`/`reported`), and `archived`.
+`volatility` (`stable`/`live`, mitchella's vocabulary — vault records are always `stable`; `live` is reserved for entries that come from signals rather than records; it says how often the entry is expected to
+change), `body`, `path`, `certainty` (`verified`/`inferred`/`unknown`, mitchella's vocabulary; the builder maps a record's `reported` to `inferred`), and `archived`.
 The **`archived`** flag is present from day one so old minutes can drop out of
 the prompt once a vault outgrows the corpus ceiling, without leaving the record.
 
