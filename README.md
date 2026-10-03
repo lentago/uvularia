@@ -25,11 +25,15 @@ the output; Claude writes the code and prose. Chris is an infrastructure
 operator, not a software engineer. Please don't read this repo as a portfolio of
 coding ability.
 
-**Status: Phase 0 in progress.** Nothing here is adoptable yet. The concept and
-the plan are in [`docs/concept.md`](docs/concept.md); the work is tracked in the
-Phase 0 issues. When the vault template, the validator, the obligation
-evaluator, and the public board are live for the demonstration client, this
-section changes to say so and the tier badge appears.
+**Status: Phase 0 complete, pending its first timed dry-run.** The core (schema,
+validator, obligation evaluator, bundle format), the records and site templates,
+the Issue-form intake, the publish workflow, the public board, and the
+demonstration client are all built and tested. What a client needs to adopt it is
+written: [`ADOPTION.md`](ADOPTION.md) and a checkpointed [`DRY-RUN.md`](DRY-RUN.md).
+No tier is claimed yet: a tier is earned by an operator running the dry-run into a
+fresh org and committing a receipt under [`receipts/`](receipts/README.md). When
+the first receipt lands, the tier badge appears. The concept and the plan are in
+[`docs/concept.md`](docs/concept.md).
 
 ## Who this is for
 
@@ -87,6 +91,9 @@ a lab fixture, not a starting point.
 |---|---|
 | [`docs/concept.md`](docs/concept.md) | the architecture, the four nouns, the three pipelines, the boundaries |
 | [`docs/adr/`](docs/adr/) | product-local decisions; the fleet-level decision is ADR-0009 in `lentago/.github` |
+| [`ADOPTION.md`](ADOPTION.md) | how a client adopts Phase 0: what it needs, what it costs, the exits, the traps |
+| [`DRY-RUN.md`](DRY-RUN.md) | the checkpointed drill from "Use this template" to a green board, with a receipt |
+| [`receipts/`](receipts/README.md) | uvularia's own adoption receipts; the tier picker cites the latest |
 | `templates/` | the three repository templates, once Phase 0 lands |
 | `core/` | the record and obligation schemas, the validator, the evaluator, the bundle format |
 | `demo/` | `org.yaml` and the seed generator for the demonstration client |
