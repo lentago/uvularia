@@ -1,0 +1,20 @@
+# Two obligations so the fixture exercises both a satisfied (green) row and an
+# unmet-with-no-record (no-data) row — never a fake green.
+- id: demo-minutes-timely
+  title: "Minutes posted within 30 days of the meeting"
+  pack: demo
+  record_type: minutes
+  subjects: [minutes]
+  source: "Demonstration rule; not a real statute."
+  disclaimer_ref: policy.disclaimer
+  lag:
+    days: 30
+- id: demo-annual-report
+  title: "Annual report refreshed every 12 months"
+  pack: demo
+  record_type: report
+  subjects: [annual-report]
+  source: "Demonstration rule; not a real statute."
+  disclaimer_ref: policy.disclaimer
+  cadence:
+    months: 12
