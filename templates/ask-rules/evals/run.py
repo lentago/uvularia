@@ -121,7 +121,13 @@ def load_bundle(location):
     try:
         data = json.loads(_read_text(location))
     except (OSError, urllib.error.URLError, ValueError) as exc:
-        raise SystemExit(f"error: could not read the published corpus at {location}: {exc}")
+        # Exit 3 is "no published corpus yet", distinct from a failing eval: a fresh
+        # repo made from the template has nothing to check against until its vault
+        # publishes, and the workflow treats 3 as a notice rather than a failure.
+        print(f"notice: no published corpus could be read at {location} ({exc}). "
+              "Set published_base in policy.yaml to your records vault's published URL; "
+              "the golden set is checked once the vault has published.", file=sys.stderr)
+        raise SystemExit(3)
     if not isinstance(data, dict) or not isinstance(data.get("records"), list):
         raise SystemExit(f"error: {location} is not a corpus bundle (no 'records' array)")
     return data
