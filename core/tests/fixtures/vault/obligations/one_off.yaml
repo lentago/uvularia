@@ -1,0 +1,37 @@
+# test-pack obligations — one rule kind per file, as a YAML list
+- id: oneoff-green
+  title: "Charity filing due on a fixed date"
+  pack: test
+  record_type: filing
+  subjects: [oneoff-green]
+  source: "Fixed filing date (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  one_off:
+    due: 2026-09-30
+- id: oneoff-red
+  title: "Charity filing due on a fixed date"
+  pack: test
+  record_type: filing
+  subjects: [oneoff-red]
+  source: "Fixed filing date (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  one_off:
+    due: 2026-09-01
+- id: oneoff-amber
+  title: "Charity filing due on a fixed date"
+  pack: test
+  record_type: filing
+  subjects: [oneoff-amber]
+  source: "Fixed filing date (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  one_off:
+    due: 2026-10-08
+- id: oneoff-nodata
+  title: "Charity filing due on a fixed date"
+  pack: test
+  record_type: filing
+  subjects: [oneoff-nd]
+  source: "Fixed filing date (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  one_off:
+    due: 2026-12-31

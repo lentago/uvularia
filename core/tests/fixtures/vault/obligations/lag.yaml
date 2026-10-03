@@ -1,0 +1,37 @@
+# test-pack obligations — one rule kind per file, as a YAML list
+- id: lag-green
+  title: "Minutes posted within 30 days of the meeting"
+  pack: test
+  record_type: minutes
+  subjects: [lag-green-mtg]
+  source: "M.G.L. c. 30A, s. 22 (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lag:
+    days: 30
+- id: lag-red
+  title: "Minutes posted within 30 days of the meeting"
+  pack: test
+  record_type: minutes
+  subjects: [lag-red-mtg]
+  source: "M.G.L. c. 30A, s. 22 (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lag:
+    days: 30
+- id: lag-amber
+  title: "Minutes posted within 30 days of the meeting"
+  pack: test
+  record_type: minutes
+  subjects: [lag-amber-mtg]
+  source: "M.G.L. c. 30A, s. 22 (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lag:
+    days: 30
+- id: lag-nodata
+  title: "Minutes posted within 30 days of the meeting"
+  pack: test
+  record_type: minutes
+  subjects: [lag-nd-mtg]
+  source: "M.G.L. c. 30A, s. 22 (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lag:
+    days: 30

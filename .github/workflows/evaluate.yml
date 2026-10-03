@@ -1,0 +1,30 @@
+# ============================================================================
+# evaluate — test the obligation evaluator
+# ============================================================================
+# Runs core/tests on every pull request: the obligation evaluator against a
+# fixture vault that carries every rule kind (lead, lag, cadence, one_off) in
+# every state (green, amber, red, no-data), plus a late notice that must stay
+# red even though the record exists. Stdlib only, no dependencies.
+#
+# Deliberately NOT path-filtered. Like schemas and docs-check, this is built to
+# serve as a required status check, and a required check whose workflow never
+# triggers is held "Expected" forever, deadlocking every non-matching PR. The
+# suite is cheap and exits in well under a second.
+# ============================================================================
+
+name: evaluate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  test-evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run the evaluator tests
+        run: python3 -m unittest discover -s core/tests -p "test_*.py" -v

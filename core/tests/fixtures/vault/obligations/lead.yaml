@@ -1,0 +1,37 @@
+# test-pack obligations — one rule kind per file, as a YAML list
+- id: lead-green
+  title: "Notice posted at least 48h before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [lead-green-mtg]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+- id: lead-red
+  title: "Notice posted at least 48h before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [lead-red-mtg]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+- id: lead-amber
+  title: "Notice posted at least 48h before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [lead-amber-mtg]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+- id: lead-nodata
+  title: "Notice posted at least 48h before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [lead-nd-mtg]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
