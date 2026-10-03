@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # Grouping collapses weekly churn into at most two PRs per ecosystem while
+    # keeping the risk split visible in the PR list itself: the "-routine" PR
+    # is reviewable on green checks, and the "-major" PR is where breaking
+    # changes land and gets read deliberately. One group for everything would
+    # hide a major bump inside a pile of patches; no grouping produces a
+    # flood of individual PRs (see lentago/.github#114).
+    groups:
+      actions-routine:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-major:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["major"]
