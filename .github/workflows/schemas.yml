@@ -1,0 +1,28 @@
+# ============================================================================
+# schemas — validate the core schema examples
+# ============================================================================
+# Runs core/schema/check_examples.py: every good example must validate against
+# its schema, every bad example must fail. Stdlib only, no dependencies.
+#
+# Deliberately NOT path-filtered. Like docs-check, this is built to serve as a
+# required status check, and a required check whose workflow never triggers is
+# held "Expected" forever, deadlocking every non-matching PR. The check is cheap
+# and exits in well under a second.
+# ============================================================================
+
+name: schemas
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  check-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate schema examples
+        run: python3 core/schema/check_examples.py
