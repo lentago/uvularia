@@ -1,0 +1,19 @@
+{
+  "commit": "82d9c9d5be",
+  "digest": "82d9c9d5be7130ad5c7e23076e93cfd2659ca036075a2e66e8dd5233c90dda6d",
+  "published_at": "2026-01-15T09:00:00Z",
+  "records": {
+    "added": [
+      "2026-01-15-where-are-the-board-minutes-and-the-annual-report"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1070",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

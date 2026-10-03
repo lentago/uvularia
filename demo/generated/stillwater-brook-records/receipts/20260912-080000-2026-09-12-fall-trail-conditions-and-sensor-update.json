@@ -1,0 +1,19 @@
+{
+  "commit": "12ec9f4ce3",
+  "digest": "12ec9f4ce3b4871a999c199b40d7a5c0d974d597680991a7e7c80adadf40f0e7",
+  "published_at": "2026-09-12T08:00:00Z",
+  "records": {
+    "added": [
+      "2026-09-12-fall-trail-conditions-and-sensor-update"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1097",
+  "standing": {
+    "amber": 0,
+    "green": 3,
+    "no_data": 0,
+    "red": 1
+  }
+}

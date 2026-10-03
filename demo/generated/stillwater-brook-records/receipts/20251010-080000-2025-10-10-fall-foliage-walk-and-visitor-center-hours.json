@@ -1,0 +1,19 @@
+{
+  "commit": "4d917fa323",
+  "digest": "4d917fa323518f6837d41caac87489f1d8465e3977cc4be9452df44b060b5b3b",
+  "published_at": "2025-10-10T08:00:00Z",
+  "records": {
+    "added": [
+      "2025-10-10-fall-foliage-walk-and-visitor-center-hours"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1058",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

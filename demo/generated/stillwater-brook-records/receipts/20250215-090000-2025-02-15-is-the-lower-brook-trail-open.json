@@ -1,0 +1,19 @@
+{
+  "commit": "43b653f967",
+  "digest": "43b653f967346e4cccccddf6333b93325992ab5e893065ac464e5f7911e1208c",
+  "published_at": "2025-02-15T09:00:00Z",
+  "records": {
+    "added": [
+      "2025-02-15-is-the-lower-brook-trail-open"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1023",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "commit": "9253739b74",
+  "digest": "9253739b7409b25825f014e5b00fe1f2ab082fa03385d71505cd0380214e219d",
+  "published_at": "2026-01-15T09:00:00Z",
+  "records": {
+    "added": [
+      "2026-01-15-when-does-the-board-meet-and-can-i-attend"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1069",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

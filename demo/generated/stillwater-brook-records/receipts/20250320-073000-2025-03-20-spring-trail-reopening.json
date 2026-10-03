@@ -1,0 +1,19 @@
+{
+  "commit": "4970e6aa0b",
+  "digest": "4970e6aa0b0258b7654bf2b2190b9f016c60722ec0a5ce44f6f75c263f8b87eb",
+  "published_at": "2025-03-20T07:30:00Z",
+  "records": {
+    "added": [
+      "2025-03-20-spring-trail-reopening"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1028",
+  "standing": {
+    "amber": 0,
+    "green": 3,
+    "no_data": 0,
+    "red": 1
+  }
+}

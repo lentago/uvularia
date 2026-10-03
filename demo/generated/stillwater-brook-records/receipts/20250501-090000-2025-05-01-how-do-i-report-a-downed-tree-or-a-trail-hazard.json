@@ -1,0 +1,19 @@
+{
+  "commit": "5b44e104a9",
+  "digest": "5b44e104a9a8cbc8d02b87f34ff1cdf3e8bcb04817c40ef317f21c503f380d69",
+  "published_at": "2025-05-01T09:00:00Z",
+  "records": {
+    "added": [
+      "2025-05-01-how-do-i-report-a-downed-tree-or-a-trail-hazard"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1034",
+  "standing": {
+    "amber": 0,
+    "green": 4,
+    "no_data": 0,
+    "red": 0
+  }
+}

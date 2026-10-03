@@ -1,0 +1,19 @@
+{
+  "commit": "21341f9ba9",
+  "digest": "21341f9ba98294bc0ac06cea7cd5849ff778a3fdd9a1edabbd8fd46f784e0fbf",
+  "published_at": "2025-08-01T09:00:00Z",
+  "records": {
+    "added": [
+      "2025-08-01-how-do-i-donate-land-or-a-conservation-easement"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1047",
+  "standing": {
+    "amber": 0,
+    "green": 3,
+    "no_data": 0,
+    "red": 1
+  }
+}

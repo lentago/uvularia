@@ -1,0 +1,19 @@
+{
+  "commit": "002c614091",
+  "digest": "002c614091fb72a5f98b148eafc2e68c64e7bed8dd3b8b1d648adc09143f0e01",
+  "published_at": "2024-03-20T09:00:00Z",
+  "records": {
+    "added": [
+      "2024-03-20-bylaws"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1004",
+  "standing": {
+    "amber": 0,
+    "green": 0,
+    "no_data": 4,
+    "red": 0
+  }
+}

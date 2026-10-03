@@ -1,0 +1,19 @@
+{
+  "commit": "19d9645d79",
+  "digest": "19d9645d79569b60f8c7c0e4b55eb909104cf6ca2ed06462a1838bc754f30fdc",
+  "published_at": "2016-02-10T09:00:00Z",
+  "records": {
+    "added": [
+      "2016-02-10-conflict-of-interest-policy"
+    ],
+    "changed": [],
+    "retracted": []
+  },
+  "run_url": "https://github.com/stillwater-brook/stillwater-brook-records/actions/runs/1002",
+  "standing": {
+    "amber": 0,
+    "green": 0,
+    "no_data": 4,
+    "red": 0
+  }
+}

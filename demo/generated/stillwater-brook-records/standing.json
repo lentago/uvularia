@@ -1,0 +1,34 @@
+[
+  {
+    "id": "ma-ag-charity-annual-filing",
+    "state": "amber",
+    "satisfied_by": "2025-10-08-form-pc",
+    "deadline": "2026-10-08",
+    "published_at": "2025-10-08T09:00:00Z",
+    "gap": -5
+  },
+  {
+    "id": "ma-corp-annual-report",
+    "state": "green",
+    "satisfied_by": "2025-11-01-annual-report",
+    "deadline": "2026-11-01",
+    "published_at": "2025-11-01T09:00:00Z",
+    "gap": -29
+  },
+  {
+    "id": "ma-oml-meeting-notice",
+    "state": "red",
+    "satisfied_by": null,
+    "deadline": "2026-09-14",
+    "published_at": "2026-09-15T14:00:00Z",
+    "gap": 1
+  },
+  {
+    "id": "ma-oml-minutes-timely",
+    "state": "green",
+    "satisfied_by": "2026-08-19-board-minutes",
+    "deadline": "2026-09-18",
+    "published_at": "2026-09-17T10:00:00Z",
+    "gap": -1
+  }
+]

@@ -1,0 +1,73 @@
+# ============================================================================
+# demo — regenerate, validate, evaluate, and guard the demonstration vault
+# ============================================================================
+# On every pull request:
+#   1. regenerate demo/generated/ from demo/org.yaml + demo/templates/ and fail
+#      if the committed output drifted (the demo cannot be hand-edited);
+#   2. run core/validate.py over the generated vault;
+#   3. run core/evaluate.py over it, confirm it reproduces the committed
+#      standing.json, and confirm the board carries at least one red and one
+#      amber (an honest demo, never a fake green);
+#   4. fail if the demo's name, short name, or domain leaked outside
+#      demo/org.yaml and demo/generated/ (demo/check_name_leak.py);
+#   5. run the demo tests, which include a fixture proving the name-leak guard
+#      can fail.
+#
+# Deliberately NOT path-filtered, like the other core checks: a required status
+# check whose workflow never triggers is held "Expected" forever and deadlocks
+# every non-matching PR (fleet required-checks rule). It is cheap and exits in a
+# second or two. Stdlib-only Python; no dependencies to install.
+# ============================================================================
+
+name: demo
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Locate the generated vault
+        run: echo "VAULT=$(python3 demo/seed.py --print-vault-path)" >> "$GITHUB_ENV"
+
+      - name: Regenerate and fail on drift
+        run: |
+          python3 demo/seed.py
+          if [ -n "$(git status --porcelain demo/generated)" ]; then
+            echo "::error::demo/generated is out of date. Run: python3 demo/seed.py"
+            git --no-pager diff -- demo/generated | head -200
+            git status --porcelain demo/generated
+            exit 1
+          fi
+          echo "demo/generated is up to date with demo/org.yaml and demo/templates/."
+
+      - name: Validate the vault (core/validate.py)
+        run: python3 core/validate.py "$VAULT"
+
+      - name: Evaluate the board (core/evaluate.py) and require a red and an amber
+        run: |
+          ASOF="$(python3 demo/seed.py --print-asof)"
+          python3 core/evaluate.py "$VAULT" --now "$ASOF" -o /tmp/standing.json
+          diff "$VAULT/standing.json" /tmp/standing.json \
+            && echo "evaluate.py reproduces the committed standing.json"
+          python3 - <<'PY'
+          import json, os
+          rows = json.load(open(os.path.join(os.environ["VAULT"], "standing.json")))
+          states = [r["state"] for r in rows]
+          assert "red" in states, f"expected a red on the board, got {states}"
+          assert "amber" in states, f"expected an amber on the board, got {states}"
+          print("board states:", states)
+          PY
+
+      - name: Guard against a demo identity leak (demo/check_name_leak.py)
+        run: python3 demo/check_name_leak.py
+
+      - name: Demo tests (includes the name-leak can-fail fixture)
+        run: python3 -m unittest discover -s demo/tests -p "test_*.py" -v

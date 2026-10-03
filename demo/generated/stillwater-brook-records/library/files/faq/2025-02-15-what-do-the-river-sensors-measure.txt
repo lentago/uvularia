@@ -1,0 +1,3 @@
+What do the river sensors measure?
+
+Water level and temperature at two gauges, read every fifteen minutes. Level drives the high-water trail-closure protocol; temperature feeds the water-quality monitoring partnership.
