@@ -1,0 +1,55 @@
+# ============================================================================
+# ask-rules-template — the rules template's own tests, run in THIS repo on every PR
+# ============================================================================
+# templates/ask-rules/ ships evals.yml and release.yml for the client's repo, but
+# nothing in lentago/uvularia's CI exercises the template itself without this
+# workflow. Two things run here:
+#
+#   1. the eval harness's offline unit tests (synthetic fixtures), which prove
+#      every dry check passes on a good golden set AND fails on a crafted one —
+#      including a deliberately wrong expected outcome. This is the hard gate.
+#   2. the shipped golden set (ten questions) run in dry mode against the live
+#      demonstration vault's published corpus, proving it is green over the demo.
+#      If the demo site is unreachable, that step warns and is skipped rather than
+#      faking green; the offline unit tests remain the gate (the repo's
+#      skip-with-a-notice precedent, never a fake pass).
+#
+# No `on:`-level path filter: a path-filtered required check never fires on
+# non-matching PRs and is held "Expected" forever (the fleet's deadlock rule).
+# Stdlib-only Python; dry mode needs no API key and no pip install.
+# ============================================================================
+name: ask-rules-template
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  test-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Harness unit tests (good golden passes; each check can fail)
+        run: |
+          python3 -m unittest discover \
+            -s templates/ask-rules/evals/tests -p "test_*.py" -v
+
+      - name: Golden set runs green over the demonstration vault
+        run: |
+          set -euo pipefail
+          url="https://lentago.github.io/uvularia-demo-records/corpus-latest.json"
+          if curl -fsS --retry 3 --retry-delay 2 "$url" -o demo-corpus.json; then
+            python3 templates/ask-rules/evals/run.py \
+              --mode dry \
+              --golden templates/ask-rules/evals/golden.jsonl \
+              --bundle demo-corpus.json
+          else
+            echo "::warning::demonstration vault unreachable; skipped the demo golden run (unit tests still gate this check)."
+          fi
