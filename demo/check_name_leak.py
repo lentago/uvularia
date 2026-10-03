@@ -116,11 +116,12 @@ def selftest():
     with tempfile.TemporaryDirectory() as tmp:
         planted = Path(tmp) / "leaked.md"
         planted.write_text(
-            "A stray mention of " + needles[0][1] + " and " + needles[-1][1] + ".\n",
+            "A stray mention of " + " and ".join(v for _, v in needles) + ".\n",
             encoding="utf-8")
         hits = scan(tmp, needles)
         fields_hit = {field for _, _, field, _ in hits}
-        if "name" not in fields_hit or "domain" not in fields_hit:
+        expected = {k for k, _ in needles}
+        if not expected.issubset(fields_hit):
             print("SELFTEST FAILED: the scanner did not catch a planted leak", file=sys.stderr)
             return 1
     print("selftest ok: the scanner catches a planted leak "

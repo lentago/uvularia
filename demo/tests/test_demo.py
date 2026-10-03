@@ -70,11 +70,12 @@ class NameLeakTest(unittest.TestCase):
         needles = check_name_leak.read_identity()
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "minutes.md").write_text(
-                f"The board of {needles[0][1]} met; see {needles[-1][1]}.\n")
+                "The board met; see " + ", ".join(v for _, v in needles) + ".\n")
             hits = check_name_leak.scan(tmp, needles)
         fields = {field for _, _, field, _ in hits}
-        self.assertIn("name", fields)
-        self.assertIn("domain", fields)
+        for field, _ in needles:
+            self.assertIn(field, fields)
+        self.assertIn("short_name_slug", fields)
 
     def test_selftest_exits_zero(self):
         self.assertEqual(check_name_leak.selftest(), 0)
