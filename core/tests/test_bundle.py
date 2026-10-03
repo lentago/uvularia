@@ -14,6 +14,7 @@ import json
 import shutil
 import sys
 import tempfile
+import re
 import unittest
 from pathlib import Path
 
@@ -84,7 +85,9 @@ class PublishBuildTest(unittest.TestCase):
     def test_receipt_validates_and_is_server_stamped(self):
         receipt_path = self.out / self.result["receipt"]
         # Named for the publish day and the digest.
-        self.assertEqual(receipt_path.name, f"2026-10-01-{self.result['digest']}.md")
+        # The name carries the publish instant (not just the day) so two publishes
+        # over an unchanged corpus never share a receipt file.
+        self.assertRegex(receipt_path.name, r"^2026-10-01T\d{6}Z-" + re.escape(self.result["digest"]) + r"\.md$")
         # Its frontmatter is the receipt object; read it the way the evaluator does.
         import evaluate
         fm = evaluate._frontmatter(receipt_path.read_text(encoding="utf-8"), receipt_path)
@@ -112,3 +115,21 @@ class PublishBuildTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReceiptNamesAreUniquePerPublish(unittest.TestCase):
+    """Two publishes over an unchanged corpus must leave two receipts (issue: a
+    day-plus-digest name let the second overwrite the first and erase provenance)."""
+
+    def test_same_digest_different_instant_gives_different_names(self):
+        import importlib.util
+        from pathlib import Path
+        spec = importlib.util.spec_from_file_location("bundle_mod", Path(__file__).resolve().parents[1] / "bundle.py")
+        bundle = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(bundle)
+        a = bundle.receipt_name("2026-10-03T21:57:30Z", "f" * 64)
+        b = bundle.receipt_name("2026-10-03T22:42:56Z", "f" * 64)
+        self.assertNotEqual(a, b)
+        self.assertTrue(a.startswith("2026-10-03T215730Z-"), a)
+        self.assertTrue(b.startswith("2026-10-03T224256Z-"), b)
+        self.assertEqual(a[-len("f" * 64) - 3:], "f" * 64 + ".md")
