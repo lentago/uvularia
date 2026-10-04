@@ -189,7 +189,7 @@ One row, left to right, each cell a count and an age:
 
 Below it: announcements (merge-to-live latency per announcement), the obligation timeline (each deadline as a vertical line, each satisfying record as a dot before or after it), and the demand loop (top unanswered subjects this week).
 
-Alerts follow ADR-0007's preferred runtime: an obligation going amber opens a GitHub Issue and sends email; the Ask function serving a stale digest opens an Issue; the daily cap hitting 80 % opens an Issue. Grafana alert rules exist in the JSON for orgs that want them, but the Issue path works with nothing but GitHub.
+Alerts follow ADR-0007's preferred runtime: an obligation going amber opens a GitHub Issue and sends email; the Ask function serving a stale digest opens an Issue; the daily cap hitting 80 % opens an Issue. Grafana alert rules exist in the JSON for orgs that want them, but the Issue path works with nothing but GitHub. The Issue path is the records vault's `watch` workflow (every 30 minutes, `scripts/watch.py`): it reads the published `standing.json` and `corpus-latest.json` and, when configured, the Ask function's `GET /health` (served digest, rules tag, enabled, cap used and cap). It keeps one open Issue per condition (label `uvularia-watch` plus a marker line) and closes it when the data shows the condition cleared, never on missing data. The stale-digest clock starts at the bundle's own server-side `published_at`. The last reported state lives in the open Issue itself, so the job needs only `issues: write` and never writes to the append-only `published` branch.
 
 ## 7. Agnosticism and the first client
 
