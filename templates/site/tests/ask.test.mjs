@@ -32,6 +32,10 @@ const HOME = join(ROOT, "dist", "index.html");
 // Read from the config file as text, so the test runs on any Node 22 without
 // loading TypeScript.
 const CONFIG_TS = readFileSync(join(ROOT, "site.config.ts"), "utf8");
+// The site's base path as the committed config sets it ("/your-org-site" in the
+// template, "/<org>-site" in a client's copy, or none), normalised to "/…/".
+const BASE_MATCH = CONFIG_TS.match(/^\s*base:\s*"([^"]*)"/m);
+const BASE_PATH = ((BASE_MATCH ? BASE_MATCH[1] : "") || "/").replace(/\/?$/, "/");
 const DISCLAIMER_PART = "legal, financial, or professional advice";
 
 let failures = 0;
@@ -155,7 +159,9 @@ function buildHome(askUrl) {
 
 console.log("\n# building with askUrl empty");
 const without = buildHome("");
-expect("the template ships askUrl empty", /^\s*askUrl: "",$/m.test(CONFIG_TS));
+// (No assertion about the committed askUrl value: the template ships it empty,
+// but a client's copy of this file legitimately sets it, and these tests run
+// in the client's repo too. The empty path is exercised by buildHome("").)
 expect("no askUrl → no widget markup", !/data-ask/.test(without) && !/Ask the records/.test(without));
 expect("no askUrl → no disclaimer", !without.includes(DISCLAIMER_PART));
 expect("no askUrl → no script on the page", !/<script/i.test(without));
@@ -168,7 +174,7 @@ expect("askUrl → widget markup", withAsk.includes("data-ask") && withAsk.inclu
 expect("askUrl → the widget posts to the configured URL", withAsk.includes(`data-ask-url="${ASK}"`));
 expect(
   "askUrl → the no-JavaScript fallback links the records index",
-  /<p data-ask-fallback[^>]*>[\s\S]*?href="\/your-org-site\/records\/"/.test(withAsk),
+  new RegExp(`<p data-ask-fallback[^>]*>[\\s\\S]*?href="${BASE_PATH}records/"`).test(withAsk),
 );
 expect("askUrl → the form is hidden until the script runs", /<form hidden[^>]*data-ask-form/.test(withAsk));
 expect("the template config carries the disclaimer", CONFIG_TS.includes(DISCLAIMER_PART));
