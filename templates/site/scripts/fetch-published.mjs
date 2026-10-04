@@ -22,6 +22,15 @@
 // board that honestly reads "no data" (invariant 5 — never a fake green). The
 // difference between "absent" and "invalid" is the whole point.
 //
+// OLDER FORMAT. The vault and this site update at different times, so the site
+// must build against the previous release's standing.json (core/schema/README.md,
+// "Compatibility between releases"). A field a release adds is optional in the
+// schema until the next one. A row that validates but lacks such a field came
+// from a vault whose core is behind: we say so in the build log and the board
+// shows that field's fallback (for history, "no history yet"). Anything that
+// breaks the schema — a wrong type, an unknown state, a missing required field —
+// is malformed, and still stops the build.
+//
 // RECEIPTS. The `published` branch carries one receipt per publish under
 // receipts/, named <YYYY-MM-DDTHHMMSSZ>-<digest>.md, but serves no directory listing over
 // a raw or Pages URL, and we must not modify the vault template to add an index.
@@ -78,6 +87,17 @@ function requireValid(name, schema, instance) {
         `than render an invalid site:\n  - ${errors.join("\n  - ")}`,
     );
   }
+}
+
+// The optional fields of one standing row (in the schema's properties, not in
+// its required list) that at least one row leaves out. Run only after the file
+// has validated, so a gap here means "older core", never "malformed".
+export function missingOptionalFields(schema, rows) {
+  let row = schema.items || {};
+  if (row.$ref) row = row.$ref.slice(2).split("/").reduce((node, part) => node[part], schema);
+  const required = new Set(row.required || []);
+  const optional = Object.keys(row.properties || {}).filter((name) => !required.has(name));
+  return optional.filter((name) => rows.some((r) => !(name in r)));
 }
 
 // The receipt filenames core/bundle.py has written, newest convention first:
@@ -137,10 +157,22 @@ export async function fetchPublished({ baseUrl, outDir }) {
   const standing = await readArtifact(baseUrl, "standing.json");
   if (standing.ok) {
     const rows = JSON.parse(standing.text);
-    requireValid("standing", await loadSchema("standing"), rows);
+    const standingSchema = await loadSchema("standing");
+    requireValid("standing", standingSchema, rows);
     await writeFile(join(out, "standing.json"), standing.text);
     meta.present.standing = true;
     log(`standing ${rows.length} obligation row(s)`);
+    const missing = missingOptionalFields(standingSchema, rows);
+    if (missing.length) {
+      // Valid, just older: render the fallback, and tell whoever reads the log.
+      meta.standing_missing_fields = missing;
+      log(
+        `standing.json has no ${missing.join(", ")} on some rows — the vault's core is ` +
+          `behind this site. The board shows the fallback for those columns (for history, ` +
+          `"no history yet") until the vault updates core/ and publishes again. ` +
+          `This is not an error.`,
+      );
+    }
   } else {
     // Absent is not a failure: the board renders every row as "no data".
     log("standing.json not published yet — the board will read 'no data'");

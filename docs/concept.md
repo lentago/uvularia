@@ -144,6 +144,8 @@ The site repo holds presentation only: page templates, theme, the voice overlays
 
 The **"Is it posted?" board** is a page on this site built from `standing.json` and the receipts: one row per obligation, green / amber / red, the satisfying record linked, the publish timestamp shown. It is drosera's status-page kit with the data source swapped from Mimir probes to the standing file. Its rule carries over: if the data is missing, the row says "no data", never a fake green.
 
+The site and the vault pick up new core releases at different times, so the site must build against the previous release's `standing.json` and bundle. A field a release adds is optional in the schema until the next release; when it is absent the board shows that field's fallback and the build log says the vault's core is behind. Only a file that breaks the schema stops the build. The rule is written down in `core/schema/README.md` ("Compatibility between releases").
+
 ## 5. The Ask box
 
 **Engine: mitchella, unchanged in its core.** The pieces already exist and are tested: the `wiki` corpus loader (reads a Markdown tree in place, title from the H1, tags from frontmatter and parent folder, certainty from the evidence line), the whole-corpus-in-prompt render behind a single cache breakpoint (ADR-0002), the four-outcome structured schema with the code-level citation gate (ids that do not exist are dropped), signals checked before the corpus (ADR-0001), no tools and no write access (ADR-0005), the append-only turn log, and the promote job.

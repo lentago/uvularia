@@ -5,6 +5,10 @@
 //      obligation id appears, and a green badge is actually rendered.
 //   2. with standing.json ABSENT — and asserts the board falls back to "no data"
 //      and renders NO green badge (invariant 5: never a fake green).
+//   3. with the PREVIOUS release's standing.json (rows without history) — and
+//      asserts the build succeeds, says the vault's core is behind, and the board
+//      reads "no history yet" for every row.
+//   4. with a MALFORMED standing.json — and asserts the build still stops.
 //
 //   node tests/board.test.mjs
 //
@@ -36,15 +40,30 @@ function expect(label, cond) {
   }
 }
 
-function build(base) {
+function build(base, { log = false } = {}) {
   rmSync(join(ROOT, "dist"), { recursive: true, force: true });
-  execFileSync(ASTRO, ["build"], {
+  const out = execFileSync(ASTRO, ["build"], {
     cwd: ROOT,
     env: { ...process.env, UVULARIA_PUBLISHED_BASE: base },
-    stdio: "inherit",
+    stdio: log ? ["ignore", "pipe", "inherit"] : "inherit",
+    encoding: "utf8",
   });
+  if (log) process.stdout.write(out);
   if (!existsSync(BOARD)) throw new Error(`build produced no board page at ${BOARD}`);
-  return readFileSync(BOARD, "utf8");
+  const html = readFileSync(BOARD, "utf8");
+  return log ? { html, log: out } : html;
+}
+
+// The good fixture with one artifact swapped for another file, in a temp dir.
+function withStanding(source, fn) {
+  const tmp = mkdtempSync(join(tmpdir(), "uvularia-standing-"));
+  try {
+    cpSync(GOOD, tmp, { recursive: true });
+    cpSync(source, join(tmp, "standing.json"));
+    return fn(tmp);
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
 // --- 1. the good fixture: one row per state ---------------------------------
@@ -91,6 +110,45 @@ try {
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }
+
+// --- 3. the previous release's standing.json: builds, "no history yet" -------
+// A site newer than its vault's core must not fail on rows that predate history.
+console.log("\n# building against the previous release's standing.json (no history)");
+withStanding(join(HERE, "fixtures", "previous", "standing.json"), (tmp) => {
+  let built = null;
+  try {
+    built = build(tmp, { log: true });
+  } catch (err) {
+    console.log(`  build failed: ${err.message.split("\n")[0]}`);
+  }
+  expect("previous-release standing builds", built !== null);
+  if (!built) return;
+  const board = built.html;
+  const fallbacks = (board.match(/no history yet/g) || []).length;
+  expect('every row reads "no history yet" (4 rows)', fallbacks === 4);
+  expect("no row invents a track record", !/late \d+ of the last|none late in the last/.test(board));
+  expect("current state still renders (a real green badge)", board.includes(GREEN_SWATCH));
+  expect("build log says the vault's core is behind", /core is behind/.test(built.log));
+});
+
+// --- 4. a malformed standing.json: the build still stops ---------------------
+// Older is tolerated; malformed is not. bad/standing.json has state "yellow".
+console.log("\n# building against a malformed standing.json (expect the build to stop)");
+withStanding(join(HERE, "fixtures", "bad", "standing.json"), (tmp) => {
+  let reason = null;
+  try {
+    execFileSync(ASTRO, ["build"], {
+      cwd: ROOT,
+      env: { ...process.env, UVULARIA_PUBLISHED_BASE: tmp },
+      stdio: "pipe",
+      encoding: "utf8",
+    });
+  } catch (err) {
+    reason = `${err.stdout || ""}${err.stderr || ""}`;
+  }
+  expect("malformed standing stops the build", reason !== null);
+  expect("the build stops on the schema check", /standing does not match its schema/.test(reason || ""));
+});
 
 console.log("");
 if (failures) {
