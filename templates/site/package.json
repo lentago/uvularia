@@ -10,7 +10,7 @@
     "preview": "astro preview",
     "check": "astro check",
     "fetch": "node scripts/fetch-published.mjs",
-    "test": "node tests/schema.test.mjs && node tests/board.test.mjs"
+    "test": "node tests/schema.test.mjs && node tests/board.test.mjs && node tests/ask.test.mjs"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

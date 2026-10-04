@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "body": {
+    "kind": "maintenance",
+    "reply": "This records assistant is paused for maintenance. The published records and the board are still available.",
+    "source_ids": [],
+    "degraded_signals": []
+  }
+}

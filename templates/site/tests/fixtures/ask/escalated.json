@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "body": {
+    "kind": "escalated",
+    "reply": "A person on staff can help with a question about your own account.",
+    "source_ids": [],
+    "degraded_signals": []
+  }
+}

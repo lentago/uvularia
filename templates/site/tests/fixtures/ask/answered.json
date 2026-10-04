@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "body": {
+    "kind": "answered",
+    "reply": "The September board meeting was held on 16 September.\n\nThe minutes are published.",
+    "source_ids": [
+      "2026-09-16-board-minutes"
+    ],
+    "degraded_signals": []
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "status": 403,
+  "body": {
+    "kind": "declined",
+    "reply": "This assistant only answers from its own site."
+  }
+}
