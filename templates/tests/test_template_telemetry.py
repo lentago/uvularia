@@ -13,7 +13,9 @@ Three things are held here, in uvularia's own CI (none of this ships):
      shape** — gated on the describe step, unable to fail the job, time-boxed,
      labelled ``source: uvularia`` with a stage drosera accepts.
   3. **The two copies of ``scripts/telemetry.py`` are byte-identical.**
-  4. **The schedules (issue #59) are quiet when unset and never red.** The
+  4. **The publish job writes the public board (issue #70).** ``index.html``
+     lands on the published branch next to ``standing.json``.
+  5. **The schedules (issue #59) are quiet when unset and never red.** The
      records template's daily snapshot jobs pass with telemetry unset and ask
      GitHub nothing; the rules template's 15-minute heartbeat passes with no
      URL, with a box that answers, and with one that does not.
@@ -108,7 +110,10 @@ def make_vault_repo(tmp):
     return origin, work
 
 
-def run_publish(job, *, vars_=None, secrets=None, loki=None):
+def run_publish(job, *, vars_=None, secrets=None, loki=None, board=None):
+    """Run the publish job against a throwaway origin. Returns the result, the
+    Loki stand-in, and the published branch's file list; pass ``board=[]`` to
+    have the published ``index.html`` appended to that list."""
     tmp = Path(tempfile.mkdtemp(prefix="publish-"))
     try:
         origin, work = make_vault_repo(tmp)
@@ -122,6 +127,8 @@ def run_publish(job, *, vars_=None, secrets=None, loki=None):
                       "actions/attest-build-provenance": lambda inputs: True})
         published = _git(tmp, "--git-dir", str(origin), "ls-tree", "-r", "--name-only",
                          "published") if result.status == "success" else ""
+        if board is not None and "index.html" in published.splitlines():
+            board.append(_git(tmp, "--git-dir", str(origin), "show", "published:index.html"))
         return result, loki, published
     finally:
         shutil.rmtree(tmp)
@@ -133,6 +140,29 @@ def publish_job():
 
 def _step(job, prefix):
     return next(s for s in job["steps"] if s.get("name", "").startswith(prefix))
+
+
+class PublishJobWritesTheBoard(unittest.TestCase):
+    """Issue #70: the publish job lays a plain board page onto the published branch."""
+
+    def test_index_html_on_the_published_branch(self):
+        board = []
+        result, _, published = run_publish(publish_job(), board=board)
+        self.assertEqual(result.status, "success", result.log)
+        self.assertEqual(result.step("Write the public board page").outcome, "success")
+        self.assertIn("index.html", published.splitlines())
+        page = board[0]
+        self.assertIn('<html lang="en">', page)
+        self.assertIn("Meeting minutes made available in a timely manner", page)
+        self.assertIn("https://github.com/Example-Org/example-records/blob/published/receipts/", page)
+
+    def test_can_fail_without_the_copy_no_board_is_published(self):
+        job = publish_job()
+        lay = _step(job, "Lay the artifacts")
+        lay["run"] = lay["run"].replace("cp _out/index.html", "true _out/index.html")
+        result, _, published = run_publish(job)
+        self.assertEqual(result.status, "success", result.log)
+        self.assertNotIn("index.html", published.splitlines(), "the mutation should make the check fail")
 
 
 class PublishJobWithTelemetryUnset(unittest.TestCase):
