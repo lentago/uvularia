@@ -12,3 +12,4 @@ added later in hindsight.
 | ADR | Decision | Date |
 | :-- | :-- | :-- |
 | [0001](0001-demo-identity-in-one-file-generated-seed.md) | The demonstration client's identity lives in one file and its records are generated, so renaming it is one edit | 2026-10-03 |
+| [0002](0002-adoption-ladder-one-repository-first.md) | Adoption is a ladder of four rungs; the first rung is one repository that publishes its own board | 2026-10-04 |
