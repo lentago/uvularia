@@ -3,6 +3,8 @@ import Base from "../layouts/Base.astro";
 import config from "../../site.config.ts";
 import { url } from "../lib/url.mjs";
 import { records, standing } from "../lib/published.mjs";
+import { askUrl } from "../lib/ask-config.mjs";
+import Ask from "../components/Ask.astro";
 
 const recs = records();
 const rows = standing();
@@ -31,6 +33,8 @@ for (const r of rows || []) counts[r.state] = (counts[r.state] || 0) + 1;
       </li>
     </ul>
   </div>
+
+  {askUrl() && <Ask />}
 
   <p class="muted">
     The board shows only what has been published. An empty board means nothing has

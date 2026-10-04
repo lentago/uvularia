@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "body": {
+    "kind": "incident",
+    "reply": "The September minutes are overdue under the 30-day posting rule.",
+    "source_ids": [
+      "2026-09-14-september-meeting-notice"
+    ],
+    "degraded_signals": []
+  }
+}

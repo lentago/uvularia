@@ -8,8 +8,8 @@ GitHub Pages.
 It builds **only** from what your records vault has published — a corpus file, a
 standing file, a feed, and a receipt served on the vault's `published` branch. It
 never reads the vault's working files, so the site can never show a fact the vault
-has not published. There is no database, no server, and (in this first version) no
-JavaScript running in your readers' browsers.
+has not published. There is no database and no server. The only JavaScript in your
+readers' browsers is the optional Ask box (section 4), and the site works without it.
 
 You edit exactly one file: [`site.config.ts`](site.config.ts).
 
@@ -87,6 +87,48 @@ satisfies it and the server-side time it went public.
 
 ---
 
+## 4. Turn on the Ask box (optional)
+
+**What you are about to do:** put a question box on your home page that answers
+from your published records and links the records it used.
+
+**Why bother:** people ask the same questions over and over. The box answers them
+from what you have published and points to the record behind each answer.
+
+**How long:** five minutes, once your Ask function is deployed (the
+`ask-function` template, deployed from your rules repo).
+
+1. Copy the Function URL your Ask deploy printed. It ends in
+   `.lambda-url.<region>.on.aws/`.
+2. In [`site.config.ts`](site.config.ts), set `askUrl` to that URL.
+3. Set `askDisclaimer` to the `disclaimer` text in your rules repo's `policy.yaml`,
+   so the box says what its rules say. The site never reads the rules repo itself.
+4. Make sure the function's `allowed_origin` is this site's origin
+   (`https://<org>.github.io`). It refuses questions from any other page.
+5. Commit to `main`.
+
+**How you know it worked:** the home page shows **Ask the records**. Ask something
+your records cover. The reply is labelled in words (**Answered**, **Incident**,
+**Escalated**, or **Declined**) and lists only the records the function cited, each
+linked to its page.
+
+What a reader sees in other cases:
+
+- If the box is switched off in `policy.yaml`, or the function is not set up or
+  cannot be reached, they see "The Ask box is off right now" and a link to the
+  records index.
+- If the day's question limit is reached, they see a line asking them to try
+  again tomorrow.
+- If there is an active incident, the notice appears first, above the answer.
+- If JavaScript is off, there is no box. They get a link to the records index,
+  and every other page works the same.
+
+The box sends only the question: no cookies and no referrer. It logs nothing.
+The conversation is kept in the browser tab's session storage and is gone when
+the tab closes. Leave `askUrl` empty and the site has no Ask box at all.
+
+---
+
 ## What builds, and from where
 
 On every push to `main` and every 30 minutes, [`deploy-pages.yml`](.github/workflows/deploy-pages.yml)
@@ -115,7 +157,7 @@ npm install        # once
 npm run dev        # preview locally at http://localhost:4321
 npm run build      # build the static site into dist/
 npm run check      # type-check (astro check)
-npm test           # schema + board tests (used by build-check on every PR)
+npm test           # schema, board, and Ask box tests (used by build-check on every PR)
 ```
 
 To preview against your real vault, `npm run dev` uses your `site.config.ts`. To
@@ -123,8 +165,9 @@ build against a local copy of some artifacts instead, set `UVULARIA_PUBLISHED_BA
 to a directory (or a different URL) and it overrides the configured source.
 
 The [`build-check`](.github/workflows/build-check.yml) workflow runs `astro check`,
-the schema validation, and two real builds of the board on every pull request, so a
-broken change cannot reach `main`.
+the schema validation, real builds of the board and the home page (with and without
+the Ask box), and the Ask box's rendering tests on every pull request, so a broken
+change cannot reach `main`.
 
 ---
 

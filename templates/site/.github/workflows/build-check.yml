@@ -42,7 +42,9 @@ jobs:
       - name: Type-check (astro check)
         run: npm run check
 
-      - name: Schema validation + board build tests
+      - name: Schema validation + board and Ask box tests
         # schema.test.mjs proves the validator passes good artifacts and fails bad
-        # ones; board.test.mjs runs two full `astro build`s and inspects /board/.
+        # ones; board.test.mjs runs two full `astro build`s and inspects /board/;
+        # ask.test.mjs renders fixture Ask replies and builds the home page with
+        # and without askUrl.
         run: npm test

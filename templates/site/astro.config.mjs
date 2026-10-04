@@ -1,6 +1,7 @@
 // astro.config.mjs
 //
-// The site is a static build with no client-side JavaScript in Phase 0. It reads
+// The site is a static build. Its only client-side JavaScript is the optional Ask
+// box, present only when site.config.ts sets askUrl. It reads
 // its identity and its data source from site.config.ts (the one file you edit),
 // and runs fetch-published.mjs as a build hook so every build starts by pulling
 // the current published artifacts from your vault. Set UVULARIA_PUBLISHED_BASE in

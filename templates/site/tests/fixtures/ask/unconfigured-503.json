@@ -1,0 +1,11 @@
+{
+  "status": 503,
+  "body": {
+    "kind": "maintenance",
+    "reply": "This assistant is not set up yet. Please check back soon.",
+    "source_ids": [],
+    "degraded_signals": [
+      "api-key"
+    ]
+  }
+}

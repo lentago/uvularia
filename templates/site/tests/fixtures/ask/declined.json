@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "body": {
+    "kind": "declined",
+    "reply": "I can only answer questions about this organization's published records.",
+    "source_ids": [],
+    "degraded_signals": []
+  }
+}

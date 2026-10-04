@@ -1,0 +1,9 @@
+{
+  "status": 429,
+  "body": {
+    "kind": "declined",
+    "reply": "This assistant has answered its limit of questions for today. Please try again tomorrow.",
+    "source_ids": [],
+    "degraded_signals": []
+  }
+}
