@@ -29,8 +29,9 @@ const ASTRO = join(ROOT, "node_modules", ".bin", "astro");
 const GOOD = join(HERE, "fixtures", "good");
 const HOME = join(ROOT, "dist", "index.html");
 
-// Read from the config file as text, so the test runs on any Node 22 without
-// loading TypeScript.
+// Read the client's values file as text, so the test runs on any Node 22 without
+// loading TypeScript. (The settings' types live in src/config-schema.ts; this only
+// needs the values.)
 const CONFIG_TS = readFileSync(join(ROOT, "site.config.ts"), "utf8");
 // The site's base path as the committed config sets it ("/your-org-site" in the
 // template, "/<org>-site" in a client's copy, or none), normalised to "/…/".

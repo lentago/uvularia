@@ -11,7 +11,12 @@ never reads the vault's working files, so the site can never show a fact the vau
 has not published. There is no database and no server. The only JavaScript in your
 readers' browsers is the optional Ask box (section 4), and the site works without it.
 
-You edit exactly one file: [`site.config.ts`](site.config.ts).
+You edit exactly one file: [`site.config.ts`](site.config.ts). It holds your values
+and nothing else. What each setting means is documented in
+[`src/config-schema.ts`](src/config-schema.ts), which belongs to the template: when
+you sync a newer version of the template, that file is updated and yours is left
+alone. A setting added later is optional, so your file keeps working until you
+choose to set it.
 
 ---
 
@@ -46,7 +51,9 @@ the only place your identity lives. There is nothing else to hunt down.
 
 **How long:** two minutes.
 
-1. Open [`site.config.ts`](site.config.ts) and set:
+1. Open [`site.config.ts`](site.config.ts) and set the values below. Each one is
+   explained in [`src/config-schema.ts`](src/config-schema.ts) if you want more
+   than this list.
    - `publishedBaseUrl` — your records repo's published artifacts. Use either its
      Pages URL (`https://<org>.github.io/<org>-records/`) or the raw branch URL
      (`https://raw.githubusercontent.com/<org>/<org>-records/published/`).
@@ -157,7 +164,7 @@ npm install        # once
 npm run dev        # preview locally at http://localhost:4321
 npm run build      # build the static site into dist/
 npm run check      # type-check (astro check)
-npm test           # schema, board, and Ask box tests (used by build-check on every PR)
+npm test           # schema, board, Ask box, and config tests (used by build-check on every PR)
 ```
 
 To preview against your real vault, `npm run dev` uses your `site.config.ts`. To
@@ -166,8 +173,10 @@ to a directory (or a different URL) and it overrides the configured source.
 
 The [`build-check`](.github/workflows/build-check.yml) workflow runs `astro check`,
 the schema validation, real builds of the board and the home page (with and without
-the Ask box), and the Ask box's rendering tests on every pull request, so a broken
-change cannot reach `main`.
+the Ask box), the Ask box's rendering tests, and the config test on every pull
+request, so a broken change cannot reach `main`. The config test builds the site
+with a `site.config.ts` written for an older template, so a template sync that
+would break your file fails here first.
 
 ---
 
