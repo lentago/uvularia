@@ -13,6 +13,10 @@ Three things are held here, in uvularia's own CI (none of this ships):
      shape** — gated on the describe step, unable to fail the job, time-boxed,
      labelled ``source: uvularia`` with a stage drosera accepts.
   3. **The two copies of ``scripts/telemetry.py`` are byte-identical.**
+  4. **The schedules (issue #59) are quiet when unset and never red.** The
+     records template's daily snapshot jobs pass with telemetry unset and ask
+     GitHub nothing; the rules template's 15-minute heartbeat passes with no
+     URL, with a box that answers, and with one that does not.
 
 Each check is also run against a mutated copy (a gate removed, a
 ``continue-on-error`` dropped) to prove it can fail.
@@ -22,11 +26,13 @@ Each check is also run against a mutated copy (a gate removed, a
 """
 
 import copy
+import http.server
 import json
 import re
 import shutil
 import subprocess
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 
@@ -36,13 +42,15 @@ TEMPLATES = Path(__file__).resolve().parents[1]
 RECORDS = TEMPLATES / "records"
 RULES = TEMPLATES / "ask-rules"
 
-TEMPLATE_WORKFLOWS = {
-    RECORDS / ".github/workflows/intake.yml": ("intake", "records", "intake"),
-    RECORDS / ".github/workflows/validate.yml": ("validate", "records", "reviewed"),
-    RECORDS / ".github/workflows/publish.yml": ("publish", "records", "published"),
-    RULES / ".github/workflows/evals.yml": ("evals", "rules", "evals"),
-    RULES / ".github/workflows/release.yml": ("release", "rules", "rules_released"),
-}
+TEMPLATE_WORKFLOWS = [
+    (RECORDS / ".github/workflows/intake.yml", "intake", "records", "intake"),
+    (RECORDS / ".github/workflows/validate.yml", "validate", "records", "reviewed"),
+    (RECORDS / ".github/workflows/publish.yml", "publish", "records", "published"),
+    (RECORDS / ".github/workflows/daily-snapshot.yml", "intake", "records", "intake"),
+    (RECORDS / ".github/workflows/daily-snapshot.yml", "reviewed", "records", "reviewed"),
+    (RULES / ".github/workflows/evals.yml", "evals", "rules", "evals"),
+    (RULES / ".github/workflows/release.yml", "release", "rules", "rules_released"),
+]
 
 # The label rules from drosera's loki-event push.sh (drosera#219). The action
 # rejects anything else, so a template that sent it would only ever log an error.
@@ -158,6 +166,9 @@ class PublishJobWithTelemetrySetAndLokiDown(unittest.TestCase):
                          ("uvularia", "records", "published", "example-org"))
         payload = json.loads(call["payload-json"])
         self.assertRegex(payload["digest"], r"^[0-9a-f]{64}$")
+        self.assertIsInstance(payload["at"], int)
+        self.assertNotIn("announcement_latency_s", payload, "no announcement went live")
+        self.assertEqual(result.step("Telemetry — time announcements").outcome, "success")
         self.assertTrue(payload["receipt"].endswith(f"-{payload['digest']}.md"))
         self.assertEqual(payload["records"]["total"], 0)
         self.assertEqual(payload["standing"]["total"], 1)
@@ -189,6 +200,144 @@ class ValidateJobWithTelemetryUnset(unittest.TestCase):
         self.assertEqual(result.status, "success", result.log)
         self.assertEqual(loki.calls, [])
         self.assertEqual(result.log.count("telemetry not configured"), 1)
+        self.assertEqual(result.step("Telemetry — count").outcome, "skipped")
+
+
+class DailySnapshotJobs(unittest.TestCase):
+    """The daily intake/reviewed snapshot (issue #59) in the records template."""
+
+    WORKFLOW = RECORDS / ".github/workflows/daily-snapshot.yml"
+
+    def _run(self, job_id, *, vars_=None, secrets=None, loki=None, job=None):
+        tmp = Path(tempfile.mkdtemp(prefix="snapshot-"))
+        try:
+            _, work = make_vault_repo(tmp)
+            wf, loaded = run_job.load_job(self.WORKFLOW, job_id)
+            loki = loki or LokiRecorder()
+            result = run_job.run_job(
+                wf, job or loaded, work, vars_=vars_, secrets=secrets, base_env=_base_env(),
+                github={"repository": "Example-Org/example-records",
+                        "repository_owner": "Example-Org", "run_id": "5"},
+                handlers={run_job.LOKI_EVENT: loki})
+        finally:
+            shutil.rmtree(tmp)
+        return result, loki
+
+    def test_unset_is_quiet_and_asks_github_nothing(self):
+        for job_id in ("intake", "reviewed"):
+            with self.subTest(job=job_id):
+                result, loki = self._run(job_id)
+                self.assertEqual(result.status, "success", result.log)
+                self.assertEqual(loki.calls, [])
+                self.assertEqual(result.log.count("telemetry not configured"), 1)
+                self.assertEqual(result.step("Telemetry — count").outcome, "skipped")
+
+    def test_set_with_github_unreachable_sends_nothing_and_stays_green(self):
+        # No token reaches the harness, so the count is left out; a scheduled
+        # run with no count has nothing to say and sends no event.
+        result, loki = self._run("intake", vars_={"LOKI_PUSH_URL": "https://logs.example"},
+                                 secrets={"LOKI_WRITE_TOKEN": "1:glc_t"})
+        self.assertEqual(result.status, "success", result.log)
+        self.assertEqual(result.step("Telemetry — count").outcome, "success")
+        self.assertEqual(loki.calls, [])
+
+    COUNT = {"open": 2, "oldest_opened_at": 1_791_000_000}
+
+    def _job_with_a_fixed_count(self, describe_run=None):
+        """The intake job with the GitHub call replaced by a known count."""
+        _, job = run_job.load_job(self.WORKFLOW, "intake")
+        job = copy.deepcopy(job)
+        _step(job, "Telemetry — count")["run"] = (
+            f"echo '{json.dumps(self.COUNT)}' > \"$RUNNER_TEMP/intake-snapshot.json\"")
+        if describe_run:
+            d = next(s for s in job["steps"] if s.get("id") == "telemetry")
+            d["run"] = describe_run(d["run"])
+        return job
+
+    def test_the_count_reaches_loki_with_at(self):
+        result, loki = self._run("intake", vars_={"LOKI_PUSH_URL": "https://logs.example"},
+                                 secrets={"LOKI_WRITE_TOKEN": "1:glc_t"},
+                                 job=self._job_with_a_fixed_count())
+        self.assertEqual(result.status, "success", result.log)
+        self.assertEqual(len(loki.calls), 1)
+        self.assertEqual(loki.calls[0]["stage"], "intake")
+        payload = json.loads(loki.calls[0]["payload-json"])
+        self.assertEqual({k: payload[k] for k in self.COUNT}, self.COUNT)
+        self.assertIsInstance(payload["at"], int)
+        self.assertNotIn("outcome", payload)
+
+    def test_can_fail_without_the_scheduled_flag_no_event_goes_out(self):
+        job = self._job_with_a_fixed_count(lambda run: run.replace("--scheduled", ""))
+        result, loki = self._run("intake", vars_={"LOKI_PUSH_URL": "https://logs.example"},
+                                 secrets={"LOKI_WRITE_TOKEN": "1:glc_t"}, job=job)
+        self.assertEqual(loki.calls, [], "the mutation should make the check fail")
+
+
+# --------------------------------------------------------------------------- #
+# The rules template's 15-minute heartbeat (issue #59).                        #
+# --------------------------------------------------------------------------- #
+
+class _Health(http.server.BaseHTTPRequestHandler):
+    hits = []
+
+    def do_GET(self):  # noqa: N802
+        type(self).hits.append(self.path)
+        body = b'{"status":"ok","digest":"abc","rules_tag":"rules-v2"}'
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *a):
+        pass
+
+
+class HeartbeatPing(unittest.TestCase):
+    WORKFLOW = RULES / ".github/workflows/heartbeat.yml"
+
+    def _run(self, vars_=None, job=None):
+        tmp = Path(tempfile.mkdtemp(prefix="heartbeat-"))
+        try:
+            wf, loaded = run_job.load_job(self.WORKFLOW, "ping")
+            return run_job.run_job(wf, job or loaded, tmp, vars_=vars_, base_env=_base_env())
+        finally:
+            shutil.rmtree(tmp)
+
+    def test_every_fifteen_minutes_with_no_token(self):
+        wf, job = run_job.load_job(self.WORKFLOW, "ping")
+        self.assertEqual(wf[True]["schedule"], [{"cron": "*/15 * * * *"}])  # YAML 1.1: on → True
+        self.assertEqual(wf["permissions"], {})
+
+    def test_unset_url_is_a_notice(self):
+        result = self._run()
+        self.assertEqual(result.status, "success", result.log)
+        self.assertIn("ASK_HEALTH_URL is not set", result.log)
+
+    def test_pings_health(self):
+        _Health.hits = []
+        server = http.server.HTTPServer(("127.0.0.1", 0), _Health)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            url = f"http://127.0.0.1:{server.server_port}/health"
+            result = self._run({"ASK_HEALTH_URL": url})
+        finally:
+            server.shutdown()
+            server.server_close()
+        self.assertEqual(result.status, "success", result.log)
+        self.assertEqual(_Health.hits, ["/health"])
+        self.assertIn('"rules_tag":"rules-v2"', result.log)
+
+    def test_a_box_that_does_not_answer_is_a_warning_not_a_red_run(self):
+        result = self._run({"ASK_HEALTH_URL": "http://127.0.0.1:9/health"})
+        self.assertEqual(result.status, "success", result.log)
+        self.assertIn("::warning title=heartbeat::", result.log)
+
+    def test_can_fail_a_bare_curl_turns_an_outage_red(self):
+        _, job = run_job.load_job(self.WORKFLOW, "ping")
+        job = copy.deepcopy(job)
+        job["steps"][0]["run"] = 'curl --silent --fail --max-time 5 "$ASK_HEALTH_URL"'
+        result = self._run({"ASK_HEALTH_URL": "http://127.0.0.1:9/health"}, job=job)
+        self.assertEqual(result.status, "failure")
 
 
 # --------------------------------------------------------------------------- #
@@ -227,6 +376,9 @@ def telemetry_problems(job, pipeline, stage):
             problems.append(f"with.{k} {w.get(k)!r} breaks drosera's label rule")
     if f"telemetry.py {stage}" not in str(d.get("run", "")):
         problems.append(f"describe step must run scripts/telemetry.py {stage}")
+    run = str(d.get("run", ""))
+    if stage in ("intake", "reviewed") and "--snapshot" not in run:
+        problems.append(f"the {stage} describe step must pass --snapshot (issue #59)")
     env = d.get("env") or {}
     if env.get("LOKI_PUSH_URL") != "${{ vars.LOKI_PUSH_URL }}":
         problems.append("describe step must read LOKI_PUSH_URL from vars")
@@ -237,8 +389,8 @@ def telemetry_problems(job, pipeline, stage):
 
 class EveryTelemetryStepIsSafe(unittest.TestCase):
     def test_all_template_workflows(self):
-        for path, (job_id, pipeline, stage) in TEMPLATE_WORKFLOWS.items():
-            with self.subTest(workflow=path.name):
+        for path, job_id, pipeline, stage in TEMPLATE_WORKFLOWS:
+            with self.subTest(workflow=path.name, job=job_id):
                 _, job = run_job.load_job(path, job_id)
                 self.assertEqual(telemetry_problems(job, pipeline, stage), [])
 

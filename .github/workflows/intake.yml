@@ -7,7 +7,9 @@
 # scaffolded record is validated with the vendored core/validate.py — the whole
 # "done when" of #7 is that the scaffold passes validation unedited. Stdlib only.
 # The same directory also holds the watch tests (scripts/watch.py, #53): condition
-# logic and issue dedupe over fixture standings and /health replies, offline.
+# logic and issue dedupe over fixture standings and /health replies, offline;
+# and the telemetry tests (scripts/telemetry.py, #52) with the pipeline-pane
+# counts (scripts/pipeline_snapshot.py, #59) over an in-memory GitHub API.
 #
 # Deliberately NOT path-filtered. Like the other test workflows, this is built to
 # serve as a required status check, and a required check whose workflow never
@@ -29,5 +31,5 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-      - name: Run the intake door and watch tests
+      - name: Run the intake door, watch, and telemetry tests
         run: python3 -m unittest discover -s templates/records/scripts/tests -p "test_*.py" -v

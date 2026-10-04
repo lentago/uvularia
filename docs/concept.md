@@ -171,13 +171,15 @@ Two panes, two audiences.
 
 | Pipeline | Stage | Emitted by | Payload |
 |---|---|---|---|
-| `records` | `intake` | vault `intake.yml` | issue number, outcome (PR opened, branch pushed, form unreadable, already open) |
-| `records` | `reviewed` | vault `validate.yml` | PR number, validator outcome, standing summary |
-| `records` | `published` | vault `publish.yml` | digest, record counts (total, added, changed, retracted), standing summary, receipt name |
+| `records` | `intake` | vault `intake.yml`; vault `daily-snapshot.yml` daily | issue number, outcome (PR opened, branch pushed, form unreadable, already open); `open` intake items and `oldest_opened_at` (the daily run carries only these two) |
+| `records` | `reviewed` | vault `validate.yml`; vault `daily-snapshot.yml` daily | PR number, validator outcome, standing summary; `awaiting` (green PRs waiting on a person) and `oldest_green_at` (the daily run carries only these two) |
+| `records` | `published` | vault `publish.yml` | digest, `published_at`, record counts (total, added, changed, retracted), standing summary, receipt name, `announcement_latency_s` (longest merge-to-live; absent when no announcement went live) |
 | `rules` | `evals` | rules `evals.yml` | pass/fail counts (live if it ran, else dry) |
 | `rules` | `rules_released` | rules `release.yml` | the `rules-vN` tag |
-| `ask` | `served` | Ask function, each refresh | corpus digest, rules tag |
-| `ask` | `asked` | Ask function, each question | kind, latency, cap used/remaining, degraded signals, question truncated to 500 characters; never origin, IP, or identity |
+| `ask` | `served` | Ask function, each refresh and at least every 10 minutes while called; rules `heartbeat.yml` calls `GET /health` every 15 minutes | corpus digest, rules tag |
+| `ask` | `asked` | Ask function, each question | kind, latency, cap used/remaining, digest, `subject` (first of the policy's `allowed_subjects` the question mentions, or `unmatched`), degraded signals, question truncated to 500 characters; never origin, IP, or identity |
+
+Every payload carries `at`, Unix seconds of what the event is about (the receipt's `published_at` for a publish, the run's or turn's own time otherwise), because a LogQL query cannot read a line's own timestamp as a value. Field names follow the pane's contract, `docs/clients/uvularia.md` § Event contract in lentago/drosera (#59). The intake and reviewed counts come from `scripts/pipeline_snapshot.py` with the run's own token; a count GitHub won't give is left out, never written as zero.
 
 Configuration is a `LOKI_PUSH_URL` variable and a `LOKI_WRITE_TOKEN` secret per repo (optional `LOKI_CLUSTER`), and `loki_push_url` + `loki_write_token_ssm_path` for the function. **Absent configuration means no events and no failure**: each workflow prints one "telemetry not configured" notice and stays green, and the function's pusher is a no-op. Every push is best-effort: `continue-on-error` and a one-minute ceiling in workflows, a two-second timeout in the function, and a logged warning on failure.
 

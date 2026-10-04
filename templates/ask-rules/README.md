@@ -57,6 +57,7 @@ reversible pull request.
 | [`signals/incidents.toml`](signals/incidents.toml) | the manual override — declare a postponed meeting or a closed trail and the box leads with it until you clear it. |
 | [`evals/golden.jsonl`](evals/golden.jsonl) | the questions the box must get right, with their expected outcome and required citations. See [`evals/README.md`](evals/README.md). |
 | [`scripts/telemetry.py`](scripts/telemetry.py) | describes each evals run and release for the optional pipeline events (see **Watch the pipeline**); does nothing unless you set it up. |
+| [`.github/workflows/heartbeat.yml`](.github/workflows/heartbeat.yml) | reads your Ask box's `/health` every 15 minutes so it reports what it serves even when nobody asks (see **Keep a quiet box reporting**); does nothing until you set `ASK_HEALTH_URL`. |
 
 ### The kill switch
 
@@ -139,6 +140,35 @@ Loki, `{source="uvularia", pipeline="rules"} | json` lists the event.
 
 The Ask function sends its own events once it's deployed. Its README covers that
 setup.
+
+### Keep a quiet box reporting
+
+**What you are about to do:** set one variable so this repository wakes your Ask
+box every 15 minutes.
+
+**Why bother:** the box reports which corpus it serves each time it checks for
+new rules or records, but it only runs when someone calls it. On a quiet
+afternoon it would say nothing, and the pipeline pane's "served digest behind
+published" alert can't tell a quiet box from a stale one. The
+[`heartbeat`](.github/workflows/heartbeat.yml) workflow reads the box's
+`GET /health` every 15 minutes, and the box sends its `served` event. `/health`
+uses none of the day's question cap and calls no model.
+
+**How long:** two minutes, once the Ask function is deployed.
+
+On the **Variables** tab, add `ASK_HEALTH_URL` = your function's URL ending in
+`/health` (the same value as the records vault's `ASK_HEALTH_URL`). Without it,
+the workflow prints one notice and does nothing. It needs no Loki secret here;
+the box sends the event with its own settings.
+
+**How you know it worked:** **Actions → heartbeat** shows a green run every
+15 minutes or so, with a `heartbeat: {"status":"ok",…}` line. If the box doesn't
+answer, the run shows a warning and stays green, so you aren't emailed every 15
+minutes. The pane's **Served** panel going stale is where you'll see it.
+
+> **Heads up:** GitHub starts schedules a few minutes late when it is busy, and
+> pauses them in a public repository with no activity for 60 days. If the
+> pings stop, open **Actions → heartbeat** and click **Enable workflow**.
 
 ---
 
