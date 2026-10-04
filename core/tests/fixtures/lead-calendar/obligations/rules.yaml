@@ -1,0 +1,86 @@
+# lead-calendar fixture obligations — the weekdays_only / exclude_dates lead
+# window (issue #13: the Open Meeting Law's 48 hours "excluding Saturdays,
+# Sundays and legal holidays").
+#
+# Rules are kept apart by subject; some subjects carry two rules so the same
+# posting is judged both ways and the difference is the point:
+#   * fri-mon: a Friday-evening notice for a Monday meeting. Plain 48h is on
+#     time (deadline Saturday 00:00); weekdays-only is late (deadline Thursday
+#     00:00), whether written in hours or days.
+#   * wed-fri: a notice up at the start of Wednesday for a Friday meeting. No
+#     weekend in the window, so weekdays-only costs nothing: on time.
+#   * wed-fri-late: the same shape posted Wednesday morning. Late — the meeting
+#     date carries no time of day, so it is read as the start of Friday.
+#   * holiday: a Thursday-midday notice for a Tuesday meeting after a Monday
+#     holiday. Weekdays-only alone is on time (deadline Friday 00:00); with the
+#     holiday excluded it is late (deadline Thursday 00:00).
+- id: fri-mon-plain
+  title: "Notice 48h before the meeting (plain)"
+  pack: test
+  record_type: notice
+  subjects: [fri-mon]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+- id: fri-mon-weekdays
+  title: "Notice 48 weekday hours before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [fri-mon]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+    weekdays_only: true
+- id: fri-mon-weekdays-days
+  title: "Notice 2 weekdays before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [fri-mon]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    days: 2
+    weekdays_only: true
+- id: wed-fri-weekdays
+  title: "Notice 48 weekday hours before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [wed-fri]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+    weekdays_only: true
+- id: wed-fri-late-weekdays
+  title: "Notice 48 weekday hours before the meeting"
+  pack: test
+  record_type: notice
+  subjects: [wed-fri-late]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+    weekdays_only: true
+- id: holiday-weekdays-only
+  title: "Notice 48 weekday hours before the meeting, holidays not listed"
+  pack: test
+  record_type: notice
+  subjects: [holiday]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+    weekdays_only: true
+- id: holiday-excluded
+  title: "Notice 48 weekday hours before the meeting, legal holidays excluded"
+  pack: test
+  record_type: notice
+  subjects: [holiday]
+  source: "M.G.L. c. 30A, s. 20(b) (test)."
+  disclaimer_ref: policy.yaml#not-legal-advice
+  lead:
+    hours: 48
+    weekdays_only: true
+    exclude_dates: [2026-10-12, 2026-11-11]
