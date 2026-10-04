@@ -2,14 +2,15 @@
 //
 // The site is a static build. Its only client-side JavaScript is the optional Ask
 // box, present only when site.config.ts sets askUrl. It reads
-// its identity and its data source from site.config.ts (the one file you edit),
+// its identity and its data source from site.config.ts (the one file you edit,
+// read through src/config.ts),
 // and runs fetch-published.mjs as a build hook so every build starts by pulling
 // the current published artifacts from your vault. Set UVULARIA_PUBLISHED_BASE in
 // the environment to override the configured source (the tests use this to build
 // against local fixtures without touching the network).
 
 import { defineConfig } from "astro/config";
-import config from "./site.config.ts";
+import { config } from "./src/config.ts";
 import { fetchPublished } from "./scripts/fetch-published.mjs";
 
 const publishedBase = process.env.UVULARIA_PUBLISHED_BASE || config.publishedBaseUrl;

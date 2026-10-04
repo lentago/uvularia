@@ -29,4 +29,5 @@ jobs:
           cache: npm
           cache-dependency-path: templates/site/package-lock.json
       - run: npm ci --no-audit --no-fund
+      - run: npm run check   # astro check over the template's own config and pages
       - run: npm test
