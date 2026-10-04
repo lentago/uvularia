@@ -61,6 +61,8 @@ validator and the evaluator are single files a tech director can read.
 | `templates/site/` | the Astro site, the board page, the Ask widget, workflows |
 | `demo/` | `org.yaml`, `seed.py`, record templates; the generated vault is committed under `demo/generated/` and is reproducible |
 | `obligations/packs/<jurisdiction>/` | obligation packs; Massachusetts first |
+| `scripts/` | repo-level tooling that never ships to a client: `template-sync.sh` (copy one subtree onto a branch of its template repo), `template-drift.py` (tree-hash check that the three template repos match), tests under `scripts/tests/` |
+| `docs/runbooks/` | operator procedures in the fleet voice; `template-sync-github-app.md` is how the sync gets its cross-repo token |
 
 ## Conventions to respect
 
