@@ -128,18 +128,25 @@ on that repository (step 3).
 The first live run opened its pull request and then stopped with
 `User is not authorized for this protected branch (enablePullRequestAutoMerge)`.
 That means the template repository's branch protection does not yet let the App
-arm auto-merge. The pull request is fine; arm it by hand this once, then fix the
-setting so the next run needs nobody:
+press the "merge when green" button. The pull request is fine; arm it by hand
+this once, then fix the setting so the next run needs nobody:
 
 - **If the template repositories' settings are managed as code** (in Lentago's
-  case they are, by `lentago/.github`'s Terraform), add the App to the ruleset's
-  bypass list there and let the apply carry it to all three.
-- **Otherwise**, in each template repository: **Settings → Rules → Rulesets →**
-  the rule on `main` **→ Bypass list → Add bypass →** pick **lentago-template-sync**
-  (under *Apps*), with *Always allow*. Save. Repeat for the other two.
+  case they are, by `lentago/.github`'s Terraform), add the App to the push
+  allowlist for the three template repositories (`gate_extra_allowances` in
+  `terraform/locals.tf`, by the App's `A_…` node id) and let the apply carry it.
+- **Otherwise**, in each template repository: **Settings → Branches →** the
+  rule on `main` **→ Restrict who can push to matching branches → add
+  `lentago-template-sync`** (it appears under *Apps* once installed). Save.
+  Repeat for the other two.
 
-The App still cannot merge a pull request whose checks are red; bypass here
-only lets it press the "merge when green" button.
+**Heads up:** if your repositories use *rulesets* rather than classic branch
+protection, adding the App to a ruleset's bypass list is not enough. GitHub's
+auto-merge does not honour ruleset bypasses, so the pull request would sit
+blocked. Use the classic rule's push allowlist for this.
+
+Being on the allowlist still does not let the App merge a pull request whose
+checks are red; the required checks decide that.
 
 ## Undo
 
