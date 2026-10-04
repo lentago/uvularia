@@ -6,6 +6,8 @@
 # file, one without), plus a failed-download case that must still scaffold. The
 # scaffolded record is validated with the vendored core/validate.py — the whole
 # "done when" of #7 is that the scaffold passes validation unedited. Stdlib only.
+# The same directory also holds the watch tests (scripts/watch.py, #53): condition
+# logic and issue dedupe over fixture standings and /health replies, offline.
 #
 # Deliberately NOT path-filtered. Like the other test workflows, this is built to
 # serve as a required status check, and a required check whose workflow never
@@ -27,5 +29,5 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-      - name: Run the intake door tests
+      - name: Run the intake door and watch tests
         run: python3 -m unittest discover -s templates/records/scripts/tests -p "test_*.py" -v
