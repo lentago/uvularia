@@ -1,10 +1,12 @@
 # Dry-run runbook — templates to a green board
 
 **What you're about to do:** starting from nothing but a GitHub account and one
-document, stand up a records vault and a public board **in a fresh organization**
-— two repositories created from the templates — and carry one record from the
+document, stand up a records vault and its public board **in a fresh organization**
+— one repository created from the template — and carry one record from the
 **Add a record** form all the way to a **green** row on the live board, with
-every check along the way turning green.
+every check along the way turning green. That is rung 1 of
+[ADOPTION.md](ADOPTION.md). An optional second drill below adds the branded site
+(rung 2) and times it separately.
 
 **Why bother:** running this once before a real engagement surfaces the slow
 steps — the first publish, enabling Pages on a branch that only just appeared,
@@ -39,18 +41,29 @@ Start the clock. Record the elapsed time at each checkpoint.
 | 3 | **Set your reviewers** — in `.github/CODEOWNERS`, replace every `@REPLACE-WITH-YOUR-REVIEWER` with your team or usernames. | No `REPLACE` string remains in the file. | | |
 | 4 | **Keep the obligations that apply** — in `obligations/`, keep the rules that apply to you and delete the rest (the template ships one example). | `obligations/` holds only rules you mean to show. | | |
 | 5 | **Merge the first change** — commit steps 2–4 to `main` (directly is fine; no protection yet). | The **publish** workflow runs green; a `published` branch now exists. | | |
-| 6 | **Turn on the vault's Pages** — Settings → Pages → Source = branch **`published`**, folder **`/ (root)`**. | `…/standing.json`, `…/feed.xml`, and `…/corpus-latest.json` resolve in a browser. | | |
+| 6 | **Turn on the vault's Pages** — Settings → Pages → Source = branch **`published`**, folder **`/ (root)`**. | `https://<org>.github.io/<org>-records/` shows the board page (every row **no data** or green so far), and `…/standing.json`, `…/feed.xml`, `…/corpus-latest.json` resolve. | | |
 | 7 | **Protect `main`** — Settings → Branches: require a pull request and "Require review from Code Owners". | Rule saved. (Add the **validate** required check after step 9 — see Notes.) | | |
 | 8 | **File the first record** — Issues → New issue → **Add a record**; pick the type, date, title, two-sentence summary, and subjects, and attach the PDF. | Within a minute the issue gets a comment linking a pull request *Intake for #N*. | | |
 | 9 | **Check the record's PR** — open the linked pull request. | The **validate** check is green; the record is scaffolded as `status: draft`. | | |
 | 10 | **Approve and merge** — on the PR, set `status: approved` and the `approved` date, then merge. | The **publish** workflow runs; a new receipt appears under `receipts/` and `standing.json` updates. | | |
-| 11 | **Create the site** — **Use this template** on [`lentago/uvularia-site-template`](https://github.com/lentago/uvularia-site-template) → named `<org>-site`. | Repo exists under the target org. | | |
-| 12 | **Turn on the site's Pages** — Settings → Pages → Source = **GitHub Actions**. | Setting saved. | | |
-| 13 | **Point the site at the vault** — edit `site.config.ts`: set `publishedBaseUrl` to the vault's published URL, plus `orgName`, `contact`, `accent`, and `base` = `/<org>-site`. Commit to `main`. | No placeholders left; `deploy-pages` runs on the push. | | |
-| 14 | **Watch the deploy** — Actions tab, the **deploy-pages** workflow. | Workflow is green; it reports the live URL. | | |
-| 15 | **Open the board** — visit `/board/` on the live site. | The obligation your record satisfies reads **green**, in words, with the record linked and its server-side publish time shown. | | |
+| 11 | **Open the board** — visit `https://<org>.github.io/<org>-records/` (reload; Pages can take a minute after the publish). | The obligation your record satisfies reads **green**, in words, with the record linked and **Last published** showing the server-side time. | | |
 
-Stop the clock.
+Stop the clock. That is the rung-1 receipt.
+
+## Optional second drill — rung 2, the branded site
+
+**Skip this if** the plain board is enough for the organization. Start a second
+clock; this time is recorded separately so the rung-1 number stays honest.
+
+| # | Step | Check it's green | Elapsed | ✅ |
+|---|---|---|---|---|
+| A | **Create the site** — **Use this template** on [`lentago/uvularia-site-template`](https://github.com/lentago/uvularia-site-template) → named `<org>-site`. | Repo exists under the target org. | | |
+| B | **Turn on the site's Pages** — Settings → Pages → Source = **GitHub Actions**. | Setting saved. | | |
+| C | **Point the site at the vault** — edit `site.config.ts`: set `publishedBaseUrl` to the vault's published URL, plus `orgName`, `contact`, `accent`, and `base` = `/<org>-site`. Commit to `main`. | No placeholders left; `deploy-pages` runs on the push. | | |
+| D | **Watch the deploy** — Actions tab, the **deploy-pages** workflow. | Workflow is green; it reports the live URL. | | |
+| E | **Open the styled board** — visit `/board/` on the live site. | The same obligation reads **green** here too, with the record linked and its publish time. | | |
+
+Stop the second clock.
 
 ## Receipt
 
@@ -59,7 +72,8 @@ Stop the clock.
 | Date of drill | |
 | Operator | |
 | Target org | |
-| **Total elapsed time** | |
+| **Total elapsed time, rung 1** | |
+| Total elapsed time, rung 2 (if run) | |
 | All checks green? (Y/N) | |
 | Slowest step (bottleneck) | |
 | Notes / follow-ups | |
@@ -75,19 +89,21 @@ Stop the clock.
 > the publish workflow. You cannot select it in Pages (step 6) before then — merge
 > first.
 
-> **Heads up.** The board redeploys on a 30-minute schedule. If step 15's row is
-> not green yet, either wait up to half an hour or run **deploy-pages** by hand
-> from the site's Actions tab.
+> **Heads up (rung 2).** The site's board redeploys on a 30-minute schedule. If
+> step E's row is not green yet, either wait up to half an hour or run
+> **deploy-pages** by hand from the site's Actions tab. The vault's own board
+> (step 11) has no such delay beyond Pages publishing the branch.
 
-> **Heads up.** A `base` mismatch in step 13 is the most common cause of "why is
-> my CSS missing" — a project Pages site needs `base: "/<org>-site"`.
+> **Heads up (rung 2).** A `base` mismatch in step C is the most common cause of
+> "why is my CSS missing" — a project Pages site needs `base: "/<org>-site"`.
 
 Re-running the drill after any template change keeps the recorded time honest.
 
 ## How you know it worked
 
-Every row in the drill above is checked, the vault's published URLs resolve, your
-first record is approved and in the corpus with a stamped receipt, and the live
-board shows its obligation **green** — in words, with the record linked and the
-server-side publish time. That is what you're signing off on when you fill in the
+Every row in the rung-1 drill is checked, the vault's published URLs resolve, your
+first record is approved and in the corpus with a stamped receipt, and the vault's
+own board shows its obligation **green** — in words, with the record linked and the
+server-side publish time. If you ran the second drill, the styled board says the
+same thing. That is what you're signing off on when you fill in the
 [Receipt](#receipt) and commit it under [`receipts/`](receipts/README.md).

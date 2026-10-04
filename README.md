@@ -25,7 +25,7 @@ the output; Claude writes the code and prose. Chris is an infrastructure
 operator, not a software engineer. Please don't read this repo as a portfolio of
 coding ability.
 
-**Status: Phase 0 complete and run once.** The vault and board stand as a **Kit**: the first timed dry-run ([receipt](receipts/2026-10-03-agent-run.md)) reached a green board in under fifteen minutes and found four adoption-path defects, all filed. The demonstration client is live: [the board](https://lentago.github.io/uvularia-demo-site/board/), its [vault](https://github.com/lentago/uvularia-demo-records), its [site](https://github.com/lentago/uvularia-demo-site). Clients start from [`uvularia-records-template`](https://github.com/lentago/uvularia-records-template) and [`uvularia-site-template`](https://github.com/lentago/uvularia-site-template); see [`ADOPTION.md`](ADOPTION.md).
+**Status: Phase 0 complete and run once.** The vault and board stand as a **Kit**: the first timed dry-run ([receipt](receipts/2026-10-03-agent-run.md)) reached a green board in under fifteen minutes and found four adoption-path defects, all filed. The demonstration client is live: [the board](https://lentago.github.io/uvularia-demo-site/board/), its [vault](https://github.com/lentago/uvularia-demo-records), its [site](https://github.com/lentago/uvularia-demo-site). Adoption is a ladder ([ADR-0002](docs/adr/0002-adoption-ladder-one-repository-first.md)): the first rung is one repository, [`uvularia-records-template`](https://github.com/lentago/uvularia-records-template), which publishes [its own plain board](https://lentago.github.io/uvularia-demo-records/); the site, the Ask box and the operator pane are the next three rungs. See [`ADOPTION.md`](ADOPTION.md).
 
 ## Who this is for
 
@@ -83,10 +83,10 @@ a lab fixture, not a starting point.
 |---|---|
 | [`docs/concept.md`](docs/concept.md) | the architecture, the four nouns, the three pipelines, the boundaries |
 | [`docs/adr/`](docs/adr/) | product-local decisions; the fleet-level decision is ADR-0009 in `lentago/.github` |
-| [`ADOPTION.md`](ADOPTION.md) | how a client adopts Phase 0: what it needs, what it costs, the exits, the traps |
+| [`ADOPTION.md`](ADOPTION.md) | the adoption ladder: rung 1 (one repository) in full, rungs 2 to 4 pointed at their guides; costs, exits, traps |
 | [`DRY-RUN.md`](DRY-RUN.md) | the checkpointed drill from "Use this template" to a green board, with a receipt |
 | [`receipts/`](receipts/README.md) | uvularia's own adoption receipts; the tier picker cites the latest |
-| `templates/` | the records and site templates (the Ask-rules template is Phase 1) |
+| `templates/` | the records, site and ask-rules templates, and the Ask function a rules repo vendors as `ask-function/` |
 | `core/` | the record and obligation schemas, the validator, the evaluator, the bundle format |
 | `demo/` | `org.yaml` and the seed generator for the demonstration client |
 
