@@ -24,3 +24,12 @@ rules (these files); only the **engine** is re-expressed.
 the new files here. The site reads the vault's published output, so an out-of-date
 copy would reject a valid new artifact (loudly) rather than accept a bad one — the
 safe direction to fail.
+
+**When the vault is behind the site.** Your vault and your site update core at
+different times. A field a release adds is optional in the schema until the next
+release (`core/schema/README.md`, "Compatibility between releases"), so a
+`standing.json` from the previous release still validates here. When rows lack
+such a field, the build log says the vault's core is behind and the board shows
+the fallback — "no history yet" for the track-record column. Updating the vault's
+core and publishing again fills it in. A file that breaks the schema any other way
+still stops the build.

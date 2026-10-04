@@ -110,6 +110,12 @@ class HistoryIsAdditive(unittest.TestCase):
                     self.assertIn(field, row)
                 self.assertIn(row["state"], ("green", "amber", "red", "no-data"))
 
+    def test_every_row_carries_history(self):
+        """The schema lets an older vault omit history; this core never does."""
+        for row in evaluate.evaluate(VAULT, now=NOW):
+            with self.subTest(obligation=row["id"]):
+                self.assertIn("history", row)
+
     def test_output_validates_against_the_standing_schema(self):
         rows = evaluate.evaluate(VAULT, now=NOW)
         schema = json.loads((CORE / "schema" / "standing.schema.json").read_text())
@@ -150,10 +156,20 @@ class SchemaRejectsMalformedHistory(unittest.TestCase):
         row = self._row({"window_days": 365, "evaluated": 4, "breaches": 2, "oops": 1})
         self.assertNotEqual(schema_validate(self.schema, row, self.schema), [])
 
-    def test_omitting_history_entirely_is_rejected(self):
+    def test_previous_release_row_without_history_passes(self):
+        """history is optional until the next release (schema README,
+        'Compatibility between releases'): a row from a core that predates it
+        must still validate, or a newer site fails on an older vault."""
         row = [{
             "id": "x", "state": "green", "satisfied_by": None,
             "deadline": None, "published_at": None, "gap": None,
+        }]
+        self.assertEqual(schema_validate(self.schema, row, self.schema), [])
+
+    def test_omitting_a_required_field_is_still_rejected(self):
+        row = [{
+            "id": "x", "state": "green", "satisfied_by": None,
+            "deadline": None, "published_at": None, "history": None,
         }]
         self.assertNotEqual(schema_validate(self.schema, row, self.schema), [])
 
