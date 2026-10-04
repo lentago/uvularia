@@ -47,6 +47,13 @@ permissions:
 
 jobs:
   drift:
+    # On a push to main the sync job may be opening the very pull request that
+    # makes the template repositories match; checking before it has pushed its
+    # branch reports drift that is already being fixed (seen on the first live
+    # run, 2026-10-04). So on push and by hand, drift waits for sync. On a pull
+    # request sync is skipped and drift runs at once.
+    needs: sync
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -142,4 +149,11 @@ jobs:
             gh pr create -R "${OWNER}/${REPO}" --head "$branch" \
               --title "Sync from ${SOURCE}@${short}" --body-file "$RUNNER_TEMP/body.md"
           fi
-          gh pr merge -R "${OWNER}/${REPO}" --auto --squash --delete-branch "$branch"
+          # Arming auto-merge needs the App to be allowed past the template
+          # repository's branch protection (its bypass list). When it is not, the
+          # pull request still exists and a person can arm it; say exactly that.
+          if ! gh pr merge -R "${OWNER}/${REPO}" --auto --squash --delete-branch "$branch"; then
+            url="$(gh pr view -R "${OWNER}/${REPO}" "$branch" --json url -q .url)"
+            echo "::error title=template-sync::opened ${url} but could not arm auto-merge. Add the sync App to the branch protection bypass list on ${OWNER}/${REPO} (docs/runbooks/template-sync-github-app.md, 'If auto-merge is refused'), or arm it by hand."
+            exit 1
+          fi
