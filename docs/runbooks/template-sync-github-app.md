@@ -123,6 +123,24 @@ the two names in step 4 is misspelled, or the secret is empty. Fix it and run
 again. If it fails while minting a token, the App is created but not installed
 on that repository (step 3).
 
+## If auto-merge is refused
+
+The first live run opened its pull request and then stopped with
+`User is not authorized for this protected branch (enablePullRequestAutoMerge)`.
+That means the template repository's branch protection does not yet let the App
+arm auto-merge. The pull request is fine; arm it by hand this once, then fix the
+setting so the next run needs nobody:
+
+- **If the template repositories' settings are managed as code** (in Lentago's
+  case they are, by `lentago/.github`'s Terraform), add the App to the ruleset's
+  bypass list there and let the apply carry it to all three.
+- **Otherwise**, in each template repository: **Settings → Rules → Rulesets →**
+  the rule on `main` **→ Bypass list → Add bypass →** pick **lentago-template-sync**
+  (under *Apps*), with *Always allow*. Save. Repeat for the other two.
+
+The App still cannot merge a pull request whose checks are red; bypass here
+only lets it press the "merge when green" button.
+
 ## Undo
 
 - **Stop it syncing:** delete the `TEMPLATE_SYNC_APP_PRIVATE_KEY` secret. The
