@@ -76,7 +76,17 @@ rules repo's `policy.yaml`.
 Exactly **one** timing kind must be present:
 
 - **`lead`** — posted at least this far *before* the event. `{hours: N}` **or**
-  `{days: N}`, not both. (A 48-hour meeting notice.)
+  `{days: N}`, not both. (A 48-hour meeting notice.) Two optional fields narrow
+  which hours count toward the window:
+  - **`weekdays_only: true`** — hours on Saturdays and Sundays don't count. Every
+    hour of Monday to Friday counts, all 24 of them. It is not called
+    `business_hours` because that name suggests 9-to-5, and the Open Meeting
+    Law's "excluding Saturdays, Sundays and legal holidays" doesn't mean that.
+  - **`exclude_dates: [YYYY-MM-DD, …]`** — hours on these dates don't count
+    either (legal holidays). This is data, not code: a pack ships the list,
+    one `holidays/<year>.json` file per year, and the rule carries the dates.
+    A year missing from the list is counted as ordinary days, so the deadline
+    is *later* than the law's. Add next year's holidays before it begins.
 - **`lag`** — posted no later than this many days *after* the event.
   `{days: N}`. (Minutes within 30 days.)
 - **`cadence`** — a fresh record of this type at least every N months, measured

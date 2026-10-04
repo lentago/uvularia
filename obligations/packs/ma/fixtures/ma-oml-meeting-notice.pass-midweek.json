@@ -1,0 +1,14 @@
+{
+  "obligation_id": "ma-oml-meeting-notice",
+  "as_of": "2026-10-30",
+  "records": [
+    {
+      "id": "2026-10-30-board-meeting-notice",
+      "type": "notice",
+      "status": "approved",
+      "effective": "2026-10-30",
+      "published_at": "2026-10-28T00:00:00Z"
+    }
+  ],
+  "expected_state": "green"
+}
