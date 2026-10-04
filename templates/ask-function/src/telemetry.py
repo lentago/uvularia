@@ -42,11 +42,11 @@ PIPELINE = "ask"
 # lists (#52, #59); adding a field here is a deliberate, reviewed change.
 ASKED_FIELDS = ("at", "kind", "latency_ms", "cap_used", "cap_remaining", "digest",
                 "subject", "degraded_signals", "question")
-NO_SUBJECT = "none"
+NO_SUBJECT = "unmatched"
 
 
 def first_subject(question: str, subjects) -> str | None:
-    """The allowed subject the question mentions first, ``"none"`` if it
+    """The allowed subject the question mentions first, ``"unmatched"`` if it
     mentions none, or None when there is no subject list to match against.
 
     Matching is mitchella's own rule for incident subjects: a case-insensitive

@@ -103,8 +103,8 @@ class FirstSubject(unittest.TestCase):
         self.assertEqual(first_subject("minutes", ("minute", "minutes")), "minute")
 
     def test_no_match_is_the_literal_none(self):
-        self.assertEqual(first_subject("Where do I park?", self.SUBJECTS), "none")
-        self.assertEqual(first_subject("", self.SUBJECTS), "none")
+        self.assertEqual(first_subject("Where do I park?", self.SUBJECTS), "unmatched")
+        self.assertEqual(first_subject("", self.SUBJECTS), "unmatched")
 
     def test_no_subject_list_is_unknown(self):
         self.assertIsNone(first_subject("trails", ()))
@@ -145,7 +145,7 @@ class HandlerEmitsOneAskedEventPerTurn(unittest.TestCase):
         self.assertEqual(len(payload["question"]), 500)
         self.assertEqual(payload["at"], 1000)
         self.assertEqual(payload["digest"], "deadbeef")
-        self.assertEqual(payload["subject"], "none")
+        self.assertEqual(payload["subject"], "unmatched")
 
     def test_subject_is_the_first_allowed_subject_never_the_question(self):
         emitted = []

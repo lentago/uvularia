@@ -177,7 +177,7 @@ Two panes, two audiences.
 | `rules` | `evals` | rules `evals.yml` | pass/fail counts (live if it ran, else dry) |
 | `rules` | `rules_released` | rules `release.yml` | the `rules-vN` tag |
 | `ask` | `served` | Ask function, each refresh and at least every 10 minutes while called; rules `heartbeat.yml` calls `GET /health` every 15 minutes | corpus digest, rules tag |
-| `ask` | `asked` | Ask function, each question | kind, latency, cap used/remaining, digest, `subject` (first of the policy's `allowed_subjects` the question mentions, or `none`), degraded signals, question truncated to 500 characters; never origin, IP, or identity |
+| `ask` | `asked` | Ask function, each question | kind, latency, cap used/remaining, digest, `subject` (first of the policy's `allowed_subjects` the question mentions, or `unmatched`), degraded signals, question truncated to 500 characters; never origin, IP, or identity |
 
 Every payload carries `at`, Unix seconds of what the event is about (the receipt's `published_at` for a publish, the run's or turn's own time otherwise), because a LogQL query cannot read a line's own timestamp as a value. Field names follow the pane's contract, `docs/clients/uvularia.md` § Event contract in lentago/drosera (#59). The intake and reviewed counts come from `scripts/pipeline_snapshot.py` with the run's own token; a count GitHub won't give is left out, never written as zero.
 
