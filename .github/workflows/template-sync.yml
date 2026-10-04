@@ -1,0 +1,145 @@
+# ============================================================================
+# template-sync — keep the three "Use this template" repositories equal to
+#                 templates/<name> here, and prove it on every pull request
+# ============================================================================
+# Two jobs.
+#
+#   drift  — on every pull request, every push to main, once a day, and by hand.
+#            Runs the sync script's own tests, then compares the git tree hash of
+#            each subtree on main with the template repository's main. Equal
+#            hashes mean byte-identical content. A sync pull request that is
+#            still waiting on its checks counts as fine (its sync/* branch
+#            matches). Anything else fails the job: a template repository is
+#            carrying something other than what this repo says it should.
+#            NOT path-filtered, so it can serve as a required status check
+#            without deadlocking non-template pull requests. Cheap: three
+#            shallow clones.
+#
+#   sync   — on every push to main and by hand. For each template repository,
+#            builds a branch from that repository's main, copies the subtree over
+#            it (scripts/template-sync.sh), opens a pull request there and arms
+#            auto-merge, so the template repository's own checks gate the change
+#            and the PR is the record. Nothing happens when the subtree already
+#            matches.
+#
+# Cross-repository writes need more than the default GITHUB_TOKEN. The sync job
+# mints a short-lived token from a GitHub App that is installed only on the three
+# template repositories (uvularia#28 weighed the options). Until the App exists
+# and its id and private key are set on this repository, the sync job prints one
+# notice per template and stays green; the drift job still tells you when a
+# by-hand sync is due. How to create the App, in plain words:
+# docs/runbooks/template-sync-github-app.md
+# ============================================================================
+
+name: template-sync
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Fetch main, the thing the template repositories must match
+        run: git fetch --quiet --depth 1 origin main
+      - name: Test the sync script and the drift check against local repositories
+        run: python3 -m unittest discover -s scripts/tests -p "test_*.py" -v
+      - name: Compare the three template repositories with main
+        run: python3 scripts/template-drift.py --source-ref origin/main
+
+  sync:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - subtree: templates/records
+            repo: uvularia-records-template
+          - subtree: templates/ask-rules
+            repo: uvularia-rules-template
+          - subtree: templates/site
+            repo: uvularia-site-template
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Is the sync App configured?
+        id: app
+        env:
+          APP_ID: ${{ vars.TEMPLATE_SYNC_APP_ID }}
+          KEY_SET: ${{ secrets.TEMPLATE_SYNC_APP_PRIVATE_KEY != '' }}
+          REPO: ${{ matrix.repo }}
+        run: |
+          if [ -z "$APP_ID" ] || [ "$KEY_SET" != "true" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=template-sync::$REPO was not synced: the repository variable TEMPLATE_SYNC_APP_ID and the secret TEMPLATE_SYNC_APP_PRIVATE_KEY are not both set. Create the App once (docs/runbooks/template-sync-github-app.md) or sync by hand."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Mint a short-lived token for ${{ matrix.repo }}
+        if: steps.app.outputs.configured == 'true'
+        id: token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.TEMPLATE_SYNC_APP_ID }}
+          private-key: ${{ secrets.TEMPLATE_SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ matrix.repo }}
+
+      - name: Build the sync branch on ${{ matrix.repo }}
+        if: steps.app.outputs.configured == 'true'
+        id: sync
+        env:
+          TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ matrix.repo }}
+          SUBTREE: ${{ matrix.subtree }}
+          GIT_AUTHOR_NAME: ${{ steps.token.outputs.app-slug }}[bot]
+          GIT_AUTHOR_EMAIL: ${{ steps.token.outputs.app-slug }}[bot]@users.noreply.github.com
+        run: |
+          scripts/template-sync.sh "$SUBTREE" \
+            "https://x-access-token:${TOKEN}@github.com/${OWNER}/${REPO}.git" \
+            "sync/${GITHUB_SHA::7}" "${GITHUB_SHA::7}"
+
+      - name: Open the pull request on ${{ matrix.repo }} and arm auto-merge
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ matrix.repo }}
+          SUBTREE: ${{ matrix.subtree }}
+          SOURCE: ${{ github.repository }}
+          SERVER: ${{ github.server_url }}
+        run: |
+          short="${GITHUB_SHA::7}"
+          branch="sync/${short}"
+          subject="$(git log -1 --format=%s)"
+          {
+            echo "Brings this repository to \`${SUBTREE}\` of ${SOURCE} at ${short}: ${subject} (${SERVER}/${SOURCE}/commit/${GITHUB_SHA})."
+            echo
+            echo "Opened by the template-sync workflow on every merge to ${SOURCE}'s \`main\`. The branch starts from this repository's \`main\` and the subtree is copied over it, so the diff is the plain content change. Auto-merge is armed; this repository's own checks gate it."
+          } > "$RUNNER_TEMP/body.md"
+          existing="$(gh pr list -R "${OWNER}/${REPO}" --head "$branch" --json number -q '.[0].number')"
+          if [ -n "$existing" ]; then
+            echo "pull request #${existing} already open for ${branch}; its branch was updated"
+          else
+            gh pr create -R "${OWNER}/${REPO}" --head "$branch" \
+              --title "Sync from ${SOURCE}@${short}" --body-file "$RUNNER_TEMP/body.md"
+          fi
+          gh pr merge -R "${OWNER}/${REPO}" --auto --squash --delete-branch "$branch"
