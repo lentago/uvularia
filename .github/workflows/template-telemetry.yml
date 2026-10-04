@@ -1,0 +1,42 @@
+# ============================================================================
+# template-telemetry — pipeline events stay optional and harmless (issue #52)
+# ============================================================================
+# Runs templates/tests on every pull request:
+#
+#   1. the records template's real publish job, step by step against a local
+#      throwaway origin, with the Loki variables UNSET (must pass, print the
+#      "telemetry not configured" notice once, and never reach the Loki step)
+#      and SET with Loki down (must still pass; the event must be well formed);
+#      the validate job with the variables unset, too;
+#   2. the shape of every telemetry step in every template workflow (gated,
+#      continue-on-error, time-boxed, drosera-valid labels);
+#   3. the two copies of scripts/telemetry.py are byte-identical.
+#
+# Each check also runs against a mutated copy to prove it can fail. PyYAML is
+# installed for the harness only; no template depends on it.
+#
+# Deliberately NOT path-filtered: a required check whose workflow never fires
+# is held "Expected" forever and deadlocks every non-matching PR.
+# ============================================================================
+
+name: template-telemetry
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  template-telemetry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the job harness's YAML reader
+        run: pip install --quiet pyyaml
+      - name: Run the template telemetry tests
+        run: python3 -m unittest discover -s templates/tests -p "test_*.py" -v
