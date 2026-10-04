@@ -171,7 +171,7 @@ Two panes, two audiences.
 
 | Pipeline | Stage | Emitted by | Payload |
 |---|---|---|---|
-| `records` | `intake` | vault `intake.yml`; vault `daily-snapshot.yml` daily | issue number, outcome (PR opened, branch pushed, form unreadable, already open); `open` intake items and `oldest_opened_at` (the daily run carries only these two) |
+| `records` | `intake` | vault `intake.yml`; vault `daily-snapshot.yml` daily | issue number, outcome (`pr_opened`; `branch_pushed` — PR left to a person, `pr` null; `form_unreadable`; `already_open`; `failed` — the run produced nothing); `open` intake items and `oldest_opened_at` (the daily run carries only these two) |
 | `records` | `reviewed` | vault `validate.yml`; vault `daily-snapshot.yml` daily | PR number, validator outcome, standing summary; `awaiting` (green PRs waiting on a person) and `oldest_green_at` (the daily run carries only these two) |
 | `records` | `published` | vault `publish.yml` | digest, `published_at`, record counts (total, added, changed, retracted), standing summary, receipt name, `announcement_latency_s` (longest merge-to-live; absent when no announcement went live) |
 | `rules` | `evals` | rules `evals.yml` | pass/fail counts (live if it ran, else dry) |
