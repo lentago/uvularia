@@ -39,7 +39,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Unit tests (cap, kill switch, citations, Turnstile bypass)
+      - name: Unit tests (cap, kill switch, citations, Turnstile bypass, telemetry)
+        env:
+          # Also compare src/loki_push.py with drosera at the commit its header
+          # names; an unreachable GitHub is a skip with a notice, never a pass.
+          UVULARIA_CHECK_UPSTREAM: "1"
         run: |
           python3 -m unittest discover \
             -s templates/ask-function/tests -p "test_*.py" -v

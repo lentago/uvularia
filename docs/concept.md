@@ -167,6 +167,20 @@ Two panes, two audiences.
 
 **Operator pane** in the org's own Grafana Cloud free tier, provisioned the drosera way (dashboard JSON applied by Terraform, in the client's Grafana, from the client's repo). Every pipeline stage emits one structured event to Loki over HTTPS push with a `logs:write` token in Actions secrets. GitHub Actions has no path into Loki today; this adds one, as a reusable composite step, which is itself a drosera deliverable and the first non-estate drosera source (drosera#131).
 
+**The event contract (as built, #52).** Workflows push with drosera's `loki-event` composite action; the Ask function pushes with drosera's `clients/loki_push.py`, vendored unchanged. Same labels from both: `source=uvularia`, `cluster=<org slug>`, `pipeline`, `stage`, `repo`, and `log_source=uvularia_<stage>`. Per-run detail goes in the one-line JSON payload, never in a label.
+
+| Pipeline | Stage | Emitted by | Payload |
+|---|---|---|---|
+| `records` | `intake` | vault `intake.yml` | issue number, outcome (PR opened, branch pushed, form unreadable, already open) |
+| `records` | `reviewed` | vault `validate.yml` | PR number, validator outcome, standing summary |
+| `records` | `published` | vault `publish.yml` | digest, record counts (total, added, changed, retracted), standing summary, receipt name |
+| `rules` | `evals` | rules `evals.yml` | pass/fail counts (live if it ran, else dry) |
+| `rules` | `rules_released` | rules `release.yml` | the `rules-vN` tag |
+| `ask` | `served` | Ask function, each refresh | corpus digest, rules tag |
+| `ask` | `asked` | Ask function, each question | kind, latency, cap used/remaining, degraded signals, question truncated to 500 characters; never origin, IP, or identity |
+
+Configuration is a `LOKI_PUSH_URL` variable and a `LOKI_WRITE_TOKEN` secret per repo (optional `LOKI_CLUSTER`), and `loki_push_url` + `loki_write_token_ssm_path` for the function. **Absent configuration means no events and no failure**: each workflow prints one "telemetry not configured" notice and stays green, and the function's pusher is a no-op. Every push is best-effort: `continue-on-error` and a one-minute ceiling in workflows, a two-second timeout in the function, and a logged warning on failure.
+
 One row, left to right, each cell a count and an age:
 
 | Intake | Reviewed | Published | Served | Asked |

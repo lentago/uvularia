@@ -56,6 +56,7 @@ reversible pull request.
 | [`policy.yaml`](policy.yaml) | allowed subjects, refusal classes, the not-legal-advice disclaimer, the daily cap, the model pin, the `enabled` kill switch, and your records vault's published URL. |
 | [`signals/incidents.toml`](signals/incidents.toml) | the manual override — declare a postponed meeting or a closed trail and the box leads with it until you clear it. |
 | [`evals/golden.jsonl`](evals/golden.jsonl) | the questions the box must get right, with their expected outcome and required citations. See [`evals/README.md`](evals/README.md). |
+| [`scripts/telemetry.py`](scripts/telemetry.py) | describes each evals run and release for the optional pipeline events (see **Watch the pipeline**); does nothing unless you set it up. |
 
 ### The kill switch
 
@@ -89,6 +90,55 @@ question — so a reviewer reads the effect, not just the wording.
 **How you know it worked:** the **evals** check is green, the comment shows the
 outcomes you expected, and — once merged — a new `rules-vN` release carries the
 change. To roll back, pin the previous release.
+
+---
+
+## 4. Watch the pipeline (optional)
+
+**What you are about to do:** send one short event to a free Grafana Cloud account
+you own every time the evals run and every time a rules release is cut. Grafana
+Cloud is a hosted dashboard service; its log store is called **Loki**.
+
+**Why bother:** you see, in one place with your records vault and your Ask box,
+which rules version is live and whether the golden set is holding. **Skip this
+if** you don't need it. With nothing set up, both workflows stay green and print
+one line: `telemetry not configured`.
+
+**How long:** five minutes if your records vault already sends events (same URL,
+same token), about fifteen if not.
+
+1. If you haven't yet, make the free Grafana Cloud stack and the write-only
+   (`logs:write`) token. The records vault template's README has the steps under
+   **Watch the pipeline**.
+2. In this repository, open **Settings → Secrets and variables → Actions**:
+   - on the **Variables** tab, add `LOKI_PUSH_URL` = your Loki URL
+     (`https://logs-prod-NNN.grafana.net`);
+   - on the **Secrets** tab, add `LOKI_WRITE_TOKEN` = `<instance-id>:<token>`;
+   - optionally, add a `LOKI_CLUSTER` variable with your organization's short
+     name (the default is this repository's owner, lowercased).
+
+What goes out, through drosera's
+[`loki-event`](https://github.com/lentago/drosera/tree/main/.github/actions/loki-event)
+step:
+
+| Workflow | Event (`stage`) | What it carries |
+|---|---|---|
+| evals | `evals` | how many golden questions passed and failed (live if it ran, else dry) |
+| release | `rules_released` | the `rules-vN` tag just cut |
+
+No questions, answers, or instructions text are sent, only the counts and the tag.
+Sending is **best-effort**: if Grafana is down, the step shows a warning and the
+check or release still finishes green.
+
+> **Heads up:** pull requests from a fork never see your secrets, so their evals
+> runs send nothing and say so in one line. That's expected.
+
+**How you know it worked:** the next run's log shows
+`loki-event: pushed log_source=uvularia_evals …`. In Grafana, under **Explore** →
+Loki, `{source="uvularia", pipeline="rules"} | json` lists the event.
+
+The Ask function sends its own events once it's deployed. Its README covers that
+setup.
 
 ---
 
