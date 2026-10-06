@@ -169,7 +169,7 @@ Two panes, two audiences.
 
 **Operator pane** in the org's own Grafana Cloud free tier, provisioned the drosera way (dashboard JSON applied by Terraform, in the client's Grafana, from the client's repo). Every pipeline stage emits one structured event to Loki over HTTPS push with a `logs:write` token in Actions secrets. GitHub Actions has no path into Loki today; this adds one, as a reusable composite step, which is itself a drosera deliverable and the first non-estate drosera source (drosera#131).
 
-**The event contract (as built, #52).** Workflows push with drosera's `loki-event` composite action; the Ask function pushes with drosera's `clients/loki_push.py`, vendored unchanged. Same labels from both: `source=uvularia`, `cluster=<org slug>`, `pipeline`, `stage`, `repo`, and `log_source=uvularia_<stage>`. Per-run detail goes in the one-line JSON payload, never in a label.
+**The event contract (as built, #52).** Workflows push with drosera's `loki-event` composite action, vendored unchanged into each template's `.github/actions/loki-event/` so a client's workflows reference nothing outside their own repository; the Ask function pushes with drosera's `clients/loki_push.py`, vendored unchanged. Same labels from both: `source=uvularia`, `cluster=<org slug>`, `pipeline`, `stage`, `repo`, and `log_source=uvularia_<stage>`. Per-run detail goes in the one-line JSON payload, never in a label.
 
 | Pipeline | Stage | Emitted by | Payload |
 |---|---|---|---|

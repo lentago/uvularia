@@ -118,9 +118,11 @@ same token), about fifteen if not.
    - optionally, add a `LOKI_CLUSTER` variable with your organization's short
      name (the default is this repository's owner, lowercased).
 
-What goes out, through drosera's
+What goes out, through the `loki-event` step in
+[`.github/actions/loki-event/`](.github/actions/loki-event/action.yml) (a copy of
+drosera's
 [`loki-event`](https://github.com/lentago/drosera/tree/main/.github/actions/loki-event)
-step:
+that lives in this repository, so your workflows depend on nothing outside it):
 
 | Workflow | Event (`stage`) | What it carries |
 |---|---|---|

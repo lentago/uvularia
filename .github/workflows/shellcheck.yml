@@ -1,0 +1,19 @@
+# ============================================================================
+# ShellCheck — static analysis of the repository's shell scripts
+# (scripts/template-sync.sh, the templates' sync-core.sh and build.sh, and the
+# vendored loki-event push.sh). Thin wrapper around
+# lentago/shared-workflows/shellcheck.yml. No `scripts` input → discovers all
+# *.sh files in the repo.
+#
+# Deliberately NOT path-filtered: a required check whose workflow never fires is
+# held "Expected" forever and deadlocks every non-matching PR.
+# ============================================================================
+name: ShellCheck
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+jobs:
+  shellcheck:
+    uses: lentago/shared-workflows/.github/workflows/shellcheck.yml@v1.2.3
