@@ -34,7 +34,7 @@ from pathlib import Path
 
 import yaml
 
-LOKI_EVENT = "lentago/drosera/.github/actions/loki-event"
+LOKI_EVENT = "./.github/actions/loki-event"
 
 
 # --------------------------------------------------------------------------- #

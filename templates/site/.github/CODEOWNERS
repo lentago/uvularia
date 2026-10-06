@@ -1,0 +1,16 @@
+# Who must approve a change to the public site. Replace the placeholder below
+# with a GitHub team or usernames in YOUR org, then turn on "Require review from
+# Code Owners" in branch protection for main (Settings → Branches). Until you do,
+# anyone with write access can change what the public sees unreviewed.
+#
+# A team:      *  @your-org/site-reviewers
+# Individuals: *  @board-secretary @tech-director
+*  @REPLACE-WITH-YOUR-REVIEWER
+
+# site.config.ts says which vault the site publishes from and where the Ask box
+# points, so it deserves the tightest reviewer you have.
+/site.config.ts  @REPLACE-WITH-YOUR-REVIEWER
+
+# The checks that build and deploy the site live here; changing them is a bigger
+# decision than changing a page.
+/.github/  @REPLACE-WITH-YOUR-REVIEWER

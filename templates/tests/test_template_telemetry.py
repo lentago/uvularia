@@ -379,7 +379,7 @@ def telemetry_problems(job, pipeline, stage):
     problems = []
     steps = job["steps"]
     describe = [s for s in steps if s.get("id") == "telemetry"]
-    push = [s for s in steps if str(s.get("uses", "")).startswith(run_job.LOKI_EVENT + "@")]
+    push = [s for s in steps if str(s.get("uses", "")) == run_job.LOKI_EVENT]
     if len(describe) != 1 or len(push) != 1:
         return [f"want one describe step (id: telemetry) and one loki-event step, "
                 f"got {len(describe)} and {len(push)}"]
