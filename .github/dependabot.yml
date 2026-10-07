@@ -1,7 +1,15 @@
 version: 2
 updates:
+  # Root plus each template root: the templates' SHA-pinned actions
+  # (templates/*/.github/workflows, synced to the client template repos) are
+  # only kept current if Dependabot scans them here. Merging a bump re-syncs
+  # through template-sync like any other templates/ change.
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - /
+      - /templates/records
+      - /templates/ask-rules
+      - /templates/site
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
