@@ -2,7 +2,7 @@
      Regenerate there; do not hand-edit the banner or badge URLs. -->
 <a href="https://lentago.dev"><img src="./assets/banner.svg" alt="uvularia — Records vault · grounded Ask, live compliance board" width="100%"></a>
 
-[![main](https://img.shields.io/github/check-runs/lentago/uvularia/main?style=flat-square&labelColor=0e2b1a&color=1b4b2e&label=main)](https://github.com/lentago/uvularia/actions) [![License](https://img.shields.io/github/license/lentago/uvularia?style=flat-square&labelColor=0e2b1a&color=1b4b2e)](https://github.com/lentago/uvularia/blob/main/LICENSE) [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1b4b2e?style=flat-square&labelColor=0e2b1a&logo=readthedocs&logoColor=E0A81C)](https://deepwiki.com/lentago/uvularia)
+[![main](https://img.shields.io/github/check-runs/lentago/uvularia/main?style=flat-square&labelColor=0e2b1a&color=1b4b2e&label=main)](https://github.com/lentago/uvularia/actions) [![License](https://img.shields.io/github/license/lentago/uvularia?style=flat-square&labelColor=0e2b1a&color=1b4b2e)](https://github.com/lentago/uvularia/blob/main/LICENSE)
 
 ![Markdown](https://img.shields.io/badge/Markdown-1b4b2e?style=flat-square&labelColor=0e2b1a&logo=markdown&logoColor=E0A81C) ![Obsidian](https://img.shields.io/badge/Obsidian-1b4b2e?style=flat-square&labelColor=0e2b1a&logo=obsidian&logoColor=E0A81C) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-1b4b2e?style=flat-square&labelColor=0e2b1a&logo=githubactions&logoColor=E0A81C) ![Claude](https://img.shields.io/badge/Claude-1b4b2e?style=flat-square&labelColor=0e2b1a&logo=anthropic&logoColor=E0A81C)
 
@@ -95,5 +95,4 @@ a lab fixture, not a starting point.
 > 🌱 **Lentago Labs** is a pro-bono operations practice for organizations that
 > run on volunteers, donations, and one overworked tech person. Everything here
 > is free to take, and we practice what we publish: our own estate runs this
-> way, in the open. Start at the [org profile](https://github.com/lentago), and
-> read this repo on [DeepWiki](https://deepwiki.com/lentago/uvularia).
+> way, in the open. Start at the [org profile](https://github.com/lentago).
