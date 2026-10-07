@@ -1,15 +1,11 @@
 version: 2
 updates:
-  # Root plus each template root: the templates' SHA-pinned actions
-  # (templates/*/.github/workflows, synced to the client template repos) are
-  # only kept current if Dependabot scans them here. Merging a bump re-syncs
-  # through template-sync like any other templates/ change.
+  # Root only. Dependabot's github-actions ecosystem parses workflow files from
+  # the repo root's .github/workflows/ alone — extra `directories` are scanned
+  # for composite action.yml files only, so listing templates/* does NOT cover
+  # the templates' workflow pins (verified 2026-10-07, #85).
   - package-ecosystem: github-actions
-    directories:
-      - /
-      - /templates/records
-      - /templates/ask-rules
-      - /templates/site
+    directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
