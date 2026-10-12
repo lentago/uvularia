@@ -70,11 +70,10 @@ organization (or your personal account). GitHub **Free** is enough. A web
 browser is the whole tool requirement. [Obsidian](https://obsidian.md) is
 optional and pleasant; the repository never depends on it.
 
-**Time:** budget about ten minutes to your first green row for one repository;
-the one timed run, on 2026-10-12, took **6 min 09 s**
-([receipt](receipts/2026-10-12-agent-run-rung1.md)). If you are coming from the
-earlier two-repository version, that one took about 28 minutes of working time
-([receipt](#receipt)). Your run is the one that counts.
+**Time:** the one timed run to the first green row for one repository, on
+2026-10-12, took **6 min 09 s** ([receipt](receipts/2026-10-12-agent-run-rung1.md)).
+If you are coming from the earlier two-repository version, that one took about
+28 minutes of working time ([receipt](#receipt)). Your run is the one that counts.
 
 **Cost:** **$0.** The vault, its checks, its publish workflow and its board run
 on GitHub Free, GitHub Actions and GitHub Pages, all free for public
