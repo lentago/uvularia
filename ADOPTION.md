@@ -70,8 +70,9 @@ organization (or your personal account). GitHub **Free** is enough. A web
 browser is the whole tool requirement. [Obsidian](https://obsidian.md) is
 optional and pleasant; the repository never depends on it.
 
-**Time:** not yet timed for one repository. The two-repository version took
-about 28 minutes of working time ([receipt](#receipt)).
+**Time:** **6 min 09 s** to the first green row for one repository, timed once on
+2026-10-12 ([receipt](receipts/2026-10-12-agent-run-rung1.md)). The earlier
+two-repository version took about 28 minutes of working time ([receipt](#receipt)).
 
 **Cost:** **$0.** The vault, its checks, its publish workflow and its board run
 on GitHub Free, GitHub Actions and GitHub Pages, all free for public
