@@ -25,7 +25,7 @@ the output; Claude writes the code and prose. Chris is an infrastructure
 operator, not a software engineer. Please don't read this repo as a portfolio of
 coding ability.
 
-**Status: Phase 0 complete and run once.** The vault and board stand as a **Kit**: the first timed dry-run ([receipt](receipts/2026-10-03-agent-run.md)) reached a green board in under fifteen minutes and found four adoption-path defects, all filed. The demonstration client is live: [the board](https://lentago.github.io/uvularia-demo-site/board/), its [vault](https://github.com/lentago/uvularia-demo-records), its [site](https://github.com/lentago/uvularia-demo-site). Adoption is a ladder ([ADR-0002](docs/adr/0002-adoption-ladder-one-repository-first.md)): the first rung is one repository, [`uvularia-records-template`](https://github.com/lentago/uvularia-records-template), which publishes [its own plain board](https://lentago.github.io/uvularia-demo-records/); the site, the Ask box and the operator pane are the next three rungs. See [`ADOPTION.md`](ADOPTION.md).
+**Status: Phase 0 complete, with a receipt; Phases 1 and 2 built, receipts not yet recorded.** The vault and board stand as a **Kit**: the first timed dry-run ([receipt](receipts/2026-10-03-agent-run.md)) reached a green board in under fifteen minutes and found four adoption-path defects, all filed. The Ask box ([#37](https://github.com/lentago/uvularia/pull/37), [#45](https://github.com/lentago/uvularia/pull/45), [#49](https://github.com/lentago/uvularia/pull/49)) and the operator pane's push step and alerts ([#58](https://github.com/lentago/uvularia/pull/58), [#60](https://github.com/lentago/uvularia/pull/60)) are merged and in the tree; neither phase has its receipt yet, and the [Phases](#phases) table says what each receipt is. The demonstration client is live: [the board](https://lentago.github.io/uvularia-demo-site/board/), its [vault](https://github.com/lentago/uvularia-demo-records), its [site](https://github.com/lentago/uvularia-demo-site). Adoption is a ladder ([ADR-0002](docs/adr/0002-adoption-ladder-one-repository-first.md)): the first rung is one repository, [`uvularia-records-template`](https://github.com/lentago/uvularia-records-template), which publishes [its own plain board](https://lentago.github.io/uvularia-demo-records/); the site, the Ask box and the operator pane are the next three rungs. See [`ADOPTION.md`](ADOPTION.md).
 
 ## Who this is for
 
@@ -52,16 +52,21 @@ change cannot smuggle either.
 The Ask box is [mitchella](https://github.com/lentago/mitchella)'s engine with
 two added signals: an obligation in breach becomes an incident on its subjects,
 and active announcements surface first. The box therefore cannot claim
-compliance the board denies.
+compliance the board denies. The Ask function is the first swing at a **front
+desk** (an assistant that answers from your own records and refuses what they
+don't say): mitchella's engine, boxed in and run serverless in your own AWS
+account. [mitchella](https://github.com/lentago/mitchella) itself is the
+production front desk, the one that will answer through many front ends: Slack,
+a website widget, email or a ticket system such as RT, the command line.
 
 ## Phases
 
 | Phase | Scope | Receipt |
 |---|---|---|
-| **0 · Vault + board** | vault template, schema, validator, obligation evaluator, Issue-form intake, publish receipts and attestation, the public board on Pages, the demonstration client, `ADOPTION.md`, a timed dry-run | the board live for the demonstration client; a dry-run receipt with elapsed time |
-| **1 · Ask box** | rules repo and eval gate, mitchella signal providers, a hardened serverless module, the widget with verified citations | a live answer that cites a record; a live refusal during a manufactured breach |
-| **2 · Operator pane** | an Actions-to-Loki push step, the left-to-right pipeline dashboard in your Grafana Cloud free tier, alerts that open Issues | the dashboard in a fresh free-tier stack |
-| **3 · Consumers** | the funder-report pipeline and the good-standing reconciliation reading the same vault | one number committed once, cited in three outputs |
+| **0 · Vault + board** | vault template, schema, validator, obligation evaluator, Issue-form intake, publish receipts and attestation, the public board on Pages, the demonstration client, `ADOPTION.md`, a timed dry-run | **recorded** ([2026-10-03](receipts/2026-10-03-agent-run.md)): the board live for the demonstration client; a dry-run receipt with elapsed time |
+| **1 · Ask box** | rules repo and eval gate, mitchella signal providers, a hardened serverless module, the widget with verified citations | **not yet recorded**: a live answer that cites a record; a live refusal during a manufactured breach. Built in [#37](https://github.com/lentago/uvularia/pull/37), [#45](https://github.com/lentago/uvularia/pull/45), [#49](https://github.com/lentago/uvularia/pull/49) |
+| **2 · Operator pane** | an Actions-to-Loki push step, the left-to-right pipeline dashboard in your Grafana Cloud free tier, alerts that open Issues | **not yet recorded**: the dashboard in a fresh free-tier stack. Built in [#58](https://github.com/lentago/uvularia/pull/58), [#60](https://github.com/lentago/uvularia/pull/60) here and the [dashboard](https://github.com/lentago/drosera/blob/main/dashboards/uvularia-pipeline.json) in drosera |
+| **3 · Consumers** | the funder-report pipeline and the good-standing reconciliation reading the same vault | **not started**: one number committed once, cited in three outputs |
 
 Phase 0 has no AI in it and is where the add-quickly, correct-quickly,
 low-blast-radius requirement is met. Everything later attaches to a vault that
