@@ -25,7 +25,7 @@ the output; Claude writes the code and prose. Chris is an infrastructure
 operator, not a software engineer. Please don't read this repo as a portfolio of
 coding ability.
 
-**Status: Phase 0 complete, with a receipt; Phases 1 and 2 built, receipts not yet recorded.** The vault and board stand as a **Kit**: the first timed dry-run ([receipt](receipts/2026-10-03-agent-run.md)) reached a green board in under fifteen minutes and found four adoption-path defects, all filed. The Ask box ([#37](https://github.com/lentago/uvularia/pull/37), [#45](https://github.com/lentago/uvularia/pull/45), [#49](https://github.com/lentago/uvularia/pull/49)) and the operator pane's push step and alerts ([#58](https://github.com/lentago/uvularia/pull/58), [#60](https://github.com/lentago/uvularia/pull/60)) are merged and in the tree; neither phase has its receipt yet, and the [Phases](#phases) table says what each receipt is. The demonstration client is live: [the board](https://lentago.github.io/uvularia-demo-site/board/), its [vault](https://github.com/lentago/uvularia-demo-records), its [site](https://github.com/lentago/uvularia-demo-site). Adoption is a ladder ([ADR-0002](docs/adr/0002-adoption-ladder-one-repository-first.md)): the first rung is one repository, [`uvularia-records-template`](https://github.com/lentago/uvularia-records-template), which publishes [its own plain board](https://lentago.github.io/uvularia-demo-records/); the site, the Ask box and the operator pane are the next three rungs. See [`ADOPTION.md`](ADOPTION.md).
+**Status: Phase 0 complete, with a receipt; Phases 1 and 2 built, receipts not yet recorded.** The vault and board stand as a **Kit**: the first timed dry-run ([receipt](receipts/2026-10-03-agent-run.md)) reached its first green row in under fifteen minutes and found four adoption-path defects, all filed. The Ask box ([#37](https://github.com/lentago/uvularia/pull/37), [#45](https://github.com/lentago/uvularia/pull/45), [#49](https://github.com/lentago/uvularia/pull/49)) and the operator pane's push step and alerts ([#58](https://github.com/lentago/uvularia/pull/58), [#60](https://github.com/lentago/uvularia/pull/60)) are merged and in the tree; neither phase has its receipt yet, and the [Phases](#phases) table says what each receipt is. The demonstration client is live: [the board](https://lentago.github.io/uvularia-demo-site/board/), its [vault](https://github.com/lentago/uvularia-demo-records), its [site](https://github.com/lentago/uvularia-demo-site). Adoption is a ladder ([ADR-0002](docs/adr/0002-adoption-ladder-one-repository-first.md)): the first rung is one repository, [`uvularia-records-template`](https://github.com/lentago/uvularia-records-template), which publishes [its own plain board](https://lentago.github.io/uvularia-demo-records/); the site, the Ask box and the operator pane are the next three rungs. See [`ADOPTION.md`](ADOPTION.md).
 
 ## Who this is for
 
@@ -55,7 +55,7 @@ and active announcements surface first. The box therefore cannot claim
 compliance the board denies. The Ask function is the first swing at a **front
 desk** (an assistant that answers from your own records and refuses what they
 don't say): mitchella's engine, boxed in and run serverless in your own AWS
-account. [mitchella](https://github.com/lentago/mitchella) itself is the
+account. [mitchella](https://github.com/lentago/mitchella) is meant to be the
 production front desk, the one that will answer through many front ends: Slack,
 a website widget, email or a ticket system such as RT, the command line.
 
