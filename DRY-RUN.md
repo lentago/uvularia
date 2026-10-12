@@ -85,10 +85,7 @@ Stop the second clock.
 > pull requests, so it first runs on the intake PR in step 8–9. Finish step 10,
 > then return to Settings → Branches and add **validate** to the required checks.
 
-> **Heads up.** The `published` branch does not exist until step 5's merge runs
-> the publish workflow. You cannot select it in Pages (step 6) before then — merge
-> first.
-
+\1\n> **Heads up (step 10).** A red **validate** on the record's pull request means the\n> published vault will carry the defect: the publish workflow does not run validate\n> again. Fix the pull request; do not merge past it with an administrator bypass.\n
 > **Heads up (rung 2).** The site's board redeploys on a 30-minute schedule. If
 > step E's row is not green yet, either wait up to half an hour or run
 > **deploy-pages** by hand from the site's Actions tab. The vault's own board
