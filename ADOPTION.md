@@ -15,7 +15,7 @@ show, live and with a timestamp, that what had to be posted was posted on time.
 **How long:** the first rung is one repository and one file to edit. The first
 timed run of the *two*-repository version took about half an hour of working time
 and under fifteen minutes to the first green row ([receipt](#receipt)); the
-one-repository rung has **not yet been timed**. Your run is the one that counts;
+one-repository rung was timed once, on 2026-10-12: **6 min 09 s** to the first green row ([receipt](receipts/2026-10-12-agent-run-rung1.md)). Your run is the one that counts;
 [DRY-RUN.md](DRY-RUN.md) is the drill that produces the number.
 
 **Status of this runbook:** rung 1 rewritten 2026-10-04 after
@@ -249,9 +249,11 @@ The first timed run, of the earlier two-repository rung 1:
 [2026-10-03, agent run](receipts/2026-10-03-agent-run.md) — **13 min 39 s to the
 first green row**, about **28 min of working time** (55 min wall clock including
 the operator's own network outage), all pull-request checks green, four
-adoption-path defects found and filed. The one-repository rung has not yet been
-timed; when it is, its receipt is added to [`receipts/`](receipts/) and the
-newest run is what the tier row in lupinus cites.
+adoption-path defects found and filed. The one-repository rung was timed on
+[2026-10-12, agent run](receipts/2026-10-12-agent-run-rung1.md): **6 min 09 s to the
+first green row**, with the first record's validate check red on a path
+convention the scaffold hint does not state (#98), fixed in a second pull request.
+The newest run is what the tier row in lupinus cites.
 
 ## Dependencies and exits
 

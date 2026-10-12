@@ -89,6 +89,12 @@ Stop the second clock.
 > the publish workflow. You cannot select it in Pages (step 6) before then — merge
 > first.
 
+> **Heads up (step 10).** A red **validate** on the record's pull request means the
+> published vault will carry the defect: the
+> [publish workflow](templates/records/.github/workflows/publish.yml) does not run
+> validate again. Fix the pull request; do not merge past it with an administrator
+> bypass.
+
 > **Heads up (rung 2).** The site's board redeploys on a 30-minute schedule. If
 > step E's row is not green yet, either wait up to half an hour or run
 > **deploy-pages** by hand from the site's Actions tab. The vault's own board

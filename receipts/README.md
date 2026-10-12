@@ -7,9 +7,9 @@ whether every check went green.
 
 A receipt is how a tier claim earns the right to be made. The tier picker in
 [lupinus](https://github.com/lentago/lupinus) cites the **latest** receipt here
-as its evidence that this product is adoptable; until one exists, uvularia claims
-no tier and [README.md](../README.md) says Phase 0 is complete *pending its first
-timed dry-run*.
+as its evidence that this product is adoptable. Phase 1's receipt (the Ask box's
+first live answer, [2026-10-12](2026-10-12-ask-live-answer.md)) lives here too,
+named for what it records rather than for a drill.
 
 > These are not the vault's *publish* receipts. Those are a different thing — one
 > per publish, written automatically by the vault's publish workflow and defined
