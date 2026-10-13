@@ -3,22 +3,10 @@ import Base from "../../layouts/Base.astro";
 import { url } from "../../lib/url.mjs";
 import { records, bundle, receipt, typeOf } from "../../lib/published.mjs";
 import { renderMarkdown } from "../../lib/markdown.mjs";
-
-// The bundle entry shape (schema/bundle.schema.json), typed here so the page is
-// type-checked even though the data is read from untyped JSON.
-interface Entry {
-  doc_id: string;
-  title: string;
-  tags: string[];
-  volatility: string;
-  body: string;
-  path: string;
-  certainty: string;
-  archived: boolean;
-}
+import type { Entry } from "../../lib/types";
 
 export function getStaticPaths() {
-  return (records() as Entry[]).map((r) => ({ params: { id: r.doc_id }, props: { record: r } }));
+  return records().map((r) => ({ params: { id: r.doc_id }, props: { record: r } }));
 }
 
 const { record } = Astro.props as { record: Entry };
@@ -26,7 +14,7 @@ const b = bundle();
 const rcpt = receipt();
 
 // mitchella's certainty vocabulary, said plainly for a reader.
-const CERTAINTY = {
+const CERTAINTY: Record<string, string> = {
   verified: "verified — from the original document",
   inferred: "reported — summarised, not from the source text",
   unknown: "certainty not recorded",

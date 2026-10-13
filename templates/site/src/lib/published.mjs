@@ -22,16 +22,19 @@ function readJson(name) {
 
 // When the data was last fetched, and which artifacts were present, as recorded
 // by the build step. Always exists after a build; falls back for safety.
+/** @returns {import("./types").Meta} */
 export function meta() {
   return readJson("meta.json") || { fetched_at: null, source: null, present: {} };
 }
 
 // The corpus bundle, or null if nothing has been published.
+/** @returns {import("./types").Bundle | null} */
 export function bundle() {
   return readJson("corpus-latest.json");
 }
 
 // The published records (bundle entries), or [] if nothing has been published.
+/** @returns {import("./types").Entry[]} */
 export function records() {
   const b = bundle();
   return b ? b.records : [];
@@ -40,6 +43,7 @@ export function records() {
 // The standing rows, or null if standing.json is absent/unreadable. null is the
 // board's "no data for anything" signal — distinct from [] (an empty obligation
 // set that was published).
+/** @returns {import("./types").Row[] | null} */
 export function standing() {
   return readJson("standing.json");
 }
@@ -50,6 +54,7 @@ export function feedXml() {
 }
 
 // The frontmatter of the receipt that published the current corpus, or null.
+/** @returns {import("./types").Receipt | null} */
 export function receipt() {
   const dir = join(DIR, "receipts");
   if (!existsSync(dir)) return null;
@@ -60,6 +65,10 @@ export function receipt() {
 }
 
 // The record type is the folder a record lives in: records/<type>/<id>.md.
+/**
+ * @param {{ path?: string }} entry
+ * @returns {string}
+ */
 export function typeOf(entry) {
   const parts = (entry.path || "").split("/");
   const i = parts.indexOf("records");

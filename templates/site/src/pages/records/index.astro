@@ -2,12 +2,13 @@
 import Base from "../../layouts/Base.astro";
 import { url } from "../../lib/url.mjs";
 import { records, typeOf } from "../../lib/published.mjs";
+import type { Groups } from "../../lib/types";
 
 const recs = records();
 
 // Group by record type (the folder the record lives in), types alphabetical,
 // records within a type newest id first (ids start YYYY-MM-DD).
-const groups = {};
+const groups: Groups = {};
 for (const r of recs) {
   const t = typeOf(r);
   (groups[t] ||= []).push(r);
