@@ -80,7 +80,7 @@ satisfies it and the server-side time it went public.
 
 1. In your **vault**, publish a record that satisfies an obligation (merge a pull
    request; the vault's publish workflow writes a new `standing.json`).
-2. The site redeploys **on a 30-minute schedule**, so within half an hour the board
+2. Once Pages is enabled, the site redeploys **on a 30-minute schedule**, so within half an hour the board
    picks up the new standing without any commit here. You can also run the
    **deploy-pages** workflow by hand from the **Actions** tab to see it immediately.
 
@@ -138,8 +138,9 @@ the tab closes. Leave `askUrl` empty and the site has no Ask box at all.
 
 ## What builds, and from where
 
-On every push to `main` and every 30 minutes, [`deploy-pages.yml`](.github/workflows/deploy-pages.yml)
-runs [`scripts/fetch-published.mjs`](scripts/fetch-published.mjs), which pulls these
+On every push to `main` and every 30 minutes, once GitHub Pages is enabled for the
+repository (until then the run checks, skips, and stays green),
+[`deploy-pages.yml`](.github/workflows/deploy-pages.yml) runs [`scripts/fetch-published.mjs`](scripts/fetch-published.mjs), which pulls these
 from your `publishedBaseUrl`:
 
 | Artifact | Becomes |

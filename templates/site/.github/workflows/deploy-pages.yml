@@ -13,6 +13,13 @@
 # vault that has published nothing yet deploys an honest empty site with a "no
 # data" board — never a fake green.
 #
+# It does nothing, and stays green, until GitHub Pages is enabled for the
+# repository (Settings -> Pages -> Source: GitHub Actions). A first job asks the
+# Pages API whether a site exists here; the build and deploy jobs run only if it
+# does. configure-pages never enables Pages itself, so this workflow cannot create
+# a site as a side effect. Nothing to configure: the probe uses this repository's
+# own name and the job token.
+#
 # Paths are relative to the repository root: in your org this template IS the repo.
 # ============================================================================
 
@@ -37,7 +44,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      pages: read
+    outputs:
+      enabled: ${{ steps.pages.outputs.enabled }}
+    steps:
+      - id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 404 means "no Pages site here": skip, green. Any other error fails
+          # the run rather than silently skipping a deploy.
+          if err=$(gh api "repos/${{ github.repository }}/pages" --silent 2>&1); then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          elif grep -q 'HTTP 404' <<<"$err"; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages is not enabled for this repository; skipping the deploy."
+          else
+            echo "$err" >&2
+            exit 1
+          fi
+
   build:
+    needs: probe
+    if: needs.probe.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -60,7 +93,8 @@ jobs:
           path: dist
 
   deploy:
-    needs: build
+    needs: [probe, build]
+    if: needs.probe.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
