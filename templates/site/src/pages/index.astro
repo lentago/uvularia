@@ -5,10 +5,11 @@ import { url } from "../lib/url.mjs";
 import { records, standing } from "../lib/published.mjs";
 import { askUrl } from "../lib/ask-config.mjs";
 import Ask from "../components/Ask.astro";
+import type { State } from "../lib/types";
 
 const recs = records();
 const rows = standing();
-const counts = { green: 0, amber: 0, red: 0, "no-data": 0 };
+const counts: Record<State, number> = { green: 0, amber: 0, red: 0, "no-data": 0 };
 for (const r of rows || []) counts[r.state] = (counts[r.state] || 0) + 1;
 ---
 

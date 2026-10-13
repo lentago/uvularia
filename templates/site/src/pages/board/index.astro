@@ -3,6 +3,7 @@ import Base from "../../layouts/Base.astro";
 import StateBadge from "../../components/StateBadge.astro";
 import { url } from "../../lib/url.mjs";
 import { standing, records, meta } from "../../lib/published.mjs";
+import type { History } from "../../lib/types";
 
 // THE RULE (carried over from drosera's status page): a missing or unreadable
 // standing.json renders as "no data" for everything — never a fake green — and we
@@ -13,7 +14,7 @@ const rows = standing();
 const m = meta();
 const corpusIds = new Set(records().map((r) => r.doc_id));
 
-function gapPhrase(gap) {
+function gapPhrase(gap: number | null | undefined) {
   if (gap === null || gap === undefined) return "—";
   if (gap < 0) return `${gap} (${-gap} day${-gap === 1 ? "" : "s"} ahead)`;
   if (gap > 0) return `${gap} (${gap} day${gap === 1 ? "" : "s"} over)`;
@@ -23,7 +24,7 @@ function gapPhrase(gap) {
 // The track record over a trailing window. A row shows the CURRENT state, so a
 // timely posting retires the red that late ones earned; history is what that
 // forgets. null is "no history yet" — not a zero-breach pass (invariant 5).
-function historyPhrase(h) {
+function historyPhrase(h: History | null | undefined) {
   if (!h) return null;
   if (h.breaches > 0) return `late ${h.breaches} of the last ${h.evaluated}`;
   return `none late in the last ${h.evaluated}`;
