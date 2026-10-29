@@ -1,0 +1,124 @@
+# ============================================================================
+# Claude Code — Automated PR Review (advisory)
+# ============================================================================
+# Thin wrapper around lentago/shared-workflows/claude-review.yml, per
+# lentago/.github ADR-0013. This file is copied from repo-template's: only the
+# review_prompt differs.
+#
+# - Runs when a PR is opened or marked ready for review, and again when it is
+#   labelled `re-review` (Haiku) or `review:sonnet` (Sonnet). It does NOT run on
+#   every push: it shares the fleet's Claude subscription with the bullpen.
+# - Advisory, never a required status check (shared-workflows ADR-0003). The
+#   gate is the arming rule: don't arm until a review has posted and every
+#   finding is triaged on the PR (shared-workflows CLAUDE.md, Auto-merge
+#   arming). A "could not complete" soft-fail comment is not a review —
+#   label `re-review`.
+# - After a labelled run, `clear-label` removes the label so adding it again
+#   triggers again.
+# - A PR that adds or changes THIS file is not reviewed by it: the Claude Code
+#   action skips unless the workflow is identical to the default branch's copy,
+#   and the reusable workflow (v1.5.0+) posts a "not a review" notice instead.
+#   Review such PRs locally and post the result as "Review (Haiku, local)"
+#   (ADR-0013 Decision 2).
+# - Dependabot PRs are skipped: Dependabot runs don't receive Actions secrets,
+#   so the required token would fail the call. Review a bump locally if it
+#   warrants one.
+# - Drafts are skipped (by the reusable workflow) and keep their trigger label
+#   until they are ready.
+# ============================================================================
+
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, labeled]
+
+jobs:
+  review:
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      github.event.pull_request.draft == false &&
+      (github.event.action != 'labeled' ||
+       github.event.label.name == 're-review' ||
+       github.event.label.name == 'review:sonnet')
+    # One review at a time per PR: a re-label during a running review queues
+    # behind it instead of posting a duplicate.
+    concurrency:
+      group: claude-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    uses: lentago/shared-workflows/.github/workflows/claude-review.yml@v1.5.0
+    secrets: inherit
+    with:
+      model: ${{ github.event.label.name == 'review:sonnet' && 'sonnet' || 'haiku' }}
+      review_prompt: |
+        This repository is uvularia, the Lentago Labs records vault: JSON
+        schemas, a stdlib-only validator and obligation evaluator, three
+        repository templates a client instantiates in their own GitHub org
+        (records vault, Ask rules, Astro site), an Ask Lambda with Terraform, a
+        Massachusetts obligations pack, and a renameable demonstration client.
+        A defect in a template or in core reaches every client org. Focus your
+        review on:
+
+        - **Separation and invariants**: nothing in the records template may
+          change a rule; nothing in the rules template may change a record; the
+          site builds from the published bundle, never a vault checkout. Records
+          are `visibility: public` only, published records are never deleted
+          (superseded or retracted), and "posted at" is the publish workflow's
+          server-side time, never an author's commit time. Flag any change that
+          weakens a CI check to make it pass.
+        - **Never fake green**: a missing or unreadable standing file, bundle,
+          or health signal must render as "no data" or UNKNOWN, not as a
+          passing obligation. Check error paths that quietly return zeros or
+          empty success. Compliance claims must be backed by `standing.json`
+          and a receipt; prose says what was posted and when, never "compliant
+          with" a statute.
+        - **Schema discipline and compatibility**: frontmatter fields come only
+          from `core/schema/`; record ids are stable path slugs; a new schema
+          field stays optional until the next release; vendored copies
+          (`templates/records/core/`, site schemas) stay byte-identical to
+          `core/`. Evaluator changes need fixture tests that can fail.
+        - **Live-apply and security surfaces**: the Ask function
+          (`templates/ask-function/`, Terraform, `deploy-ask.yml`), its
+          kill switch, Turnstile and daily-cap guards, the IAM and SSM scope,
+          and the template-sync and publish workflows. Look for secrets in
+          logs or state, widened permissions, untrusted issue or PR text
+          reaching `run:` lines (pass through `env:`), and unpinned actions.
+        - **Portability and readability**: no Lentago estate specifics
+          (hostnames, accounts, container ids) under `templates/` or `demo/`;
+          the demo name appears only in `demo/org.yaml` and generated output
+          (seed records come from `demo/seed.py`, never hand-written). Code a
+          client runs in CI is Python 3.12 standard library a tech director can
+          read; new dependencies need an ADR, except where the Node/Astro site
+          and the Ask function already carry theirs.
+        - **Prose and links**: reader-facing Markdown follows the fleet voice
+          (what you're about to do, why, how long, how you know it worked);
+          relative links only in anything a client edits, and they must
+          resolve, since the fleet runs a link checker.
+
+  clear-label:
+    needs: review
+    if: >-
+      always() && github.event.action == 'labeled' &&
+      github.event.pull_request.draft == false &&
+      (github.event.label.name == 're-review' || github.event.label.name == 'review:sonnet')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Remove the trigger label so it can be added again
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          LABEL: ${{ github.event.label.name }}
+        # REST, not `gh pr edit`: the GraphQL path can trip on PR project
+        # fields with GITHUB_TOKEN, and a label left behind would make the
+        # next re-add a no-op (no `labeled` event).
+        run: |
+          enc=$(jq -rn --arg l "$LABEL" '$l|@uri')
+          gh api --method DELETE "repos/$REPO/issues/$PR/labels/$enc" >/dev/null
