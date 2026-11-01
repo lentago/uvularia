@@ -10,6 +10,8 @@ asserts the corpus it would attest exists and is valid, and the workflow wires
 the attestation.)
 """
 
+import contextlib
+import io
 import json
 import shutil
 import sys
@@ -115,6 +117,110 @@ class PublishBuildTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+REPORT = """---
+id: 2025-11-01-annual-report
+title: "Annual report 2025"
+type: report
+status: approved
+visibility: public
+effective: 2025-11-01
+approved: 2025-11-01
+source: {kind: pdf, file: library/files/report/2025-11-01-annual-report.pdf, sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855}
+certainty: verified
+subjects: [annual-report]
+tags: [report]
+---
+
+# Annual report 2025
+"""
+
+
+class ReevaluateBetweenPublishes(unittest.TestCase):
+    """uvularia#115: standing evaluated only at publish goes stale.
+
+    A 12-month annual report published on 2025-11-01 is due again on 2026-11-01.
+    Published on 2026-10-01 the row is green. Nothing more is published. The
+    scheduled re-evaluation must see it turn amber inside the warning window and
+    red after the due date, write standing.json only, and stamp every row."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.vault = self.tmp / "vault"
+        shutil.copytree(FIXTURE, self.vault)
+        (self.vault / "records" / "report").mkdir(parents=True)
+        (self.vault / "records" / "report" / "2025-11-01-annual-report.md").write_text(
+            REPORT, encoding="utf-8")
+        self.published = self.tmp / "published"
+        bundle.build(vault=self.vault, out_dir=self.published, published_at=PUBLISHED_AT,
+                     run_url=RUN_URL, commit=COMMIT)
+        # A fresh checkout of the published commit: no receipts of its own.
+        self.src = self.tmp / "src"
+        shutil.copytree(FIXTURE, self.src)
+        shutil.copytree(self.vault / "records" / "report", self.src / "records" / "report")
+
+    def row(self, out, oid="demo-annual-report"):
+        rows = json.loads((out / "standing.json").read_text(encoding="utf-8"))
+        return next(r for r in rows if r["id"] == oid), rows
+
+    def test_publish_stamps_rows_with_the_publish_time(self):
+        row, rows = self.row(self.published)
+        self.assertEqual(row["state"], "green")
+        self.assertEqual({r["evaluated_at"] for r in rows}, {PUBLISHED_AT})
+
+    def test_the_row_turns_amber_then_red_with_nothing_published(self):
+        for now, state in (("2026-10-20T06:17:00Z", "green"),
+                           ("2026-10-25T06:17:00Z", "amber"),
+                           ("2026-11-01T06:17:00Z", "amber"),
+                           ("2026-11-02T00:17:00Z", "red")):
+            with self.subTest(now=now):
+                out = self.tmp / f"out-{now[:10]}"
+                result = bundle.reevaluate(self.src, self.published / "receipts", out, now)
+                row, rows = self.row(out)
+                self.assertEqual(row["state"], state)
+                self.assertEqual({r["evaluated_at"] for r in rows}, {now})
+                self.assertEqual(result["evaluated_at"], now)
+                self.assertEqual(schema_validate(_schema("standing"), rows, _schema("standing")), [])
+
+    def test_it_writes_standing_and_nothing_else(self):
+        out = self.tmp / "out"
+        bundle.reevaluate(self.src, self.published / "receipts", out, "2026-10-25T06:17:00Z")
+        self.assertEqual(sorted(p.name for p in out.iterdir()), ["standing.json"])
+        self.assertEqual(sorted(p.name for p in (self.published / "receipts").iterdir()),
+                         sorted(p.name for p in (self.src / "receipts").glob("*.md")),
+                         "the published receipts are read, and none is added")
+
+    def test_the_published_record_keeps_its_publish_time(self):
+        out = self.tmp / "out"
+        bundle.reevaluate(self.src, self.published / "receipts", out, "2026-10-25T06:17:00Z")
+        row, _ = self.row(out, "demo-minutes-timely")
+        self.assertEqual((row["state"], row["published_at"]), ("green", PUBLISHED_AT))
+
+    def test_bad_now_fails_loudly(self):
+        with self.assertRaises(SystemExit):
+            bundle.reevaluate(self.src, self.published / "receipts", self.tmp / "o", "soon")
+
+    def test_last_commit_is_the_newest_receipts(self):
+        later = self.tmp / "later"
+        bundle.build(vault=self.vault, out_dir=later, published_at="2026-10-02T09:00:00Z",
+                     run_url=RUN_URL, commit="fedcba9")
+        receipts = self.tmp / "receipts"
+        receipts.mkdir()
+        for d in (self.published, later):
+            for f in (d / "receipts").glob("*.md"):
+                shutil.copy(f, receipts / f.name)
+        self.assertEqual(bundle.latest_receipt(receipts)["commit"], "fedcba9")
+        with contextlib.redirect_stdout(io.StringIO()) as buf:
+            code = bundle.main(["last-commit", "--receipts", str(receipts)])
+        self.assertEqual((code, buf.getvalue().strip()), (0, "fedcba9"))
+
+    def test_last_commit_with_no_receipts_fails(self):
+        empty = self.tmp / "empty"
+        empty.mkdir()
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(bundle.main(["last-commit", "--receipts", str(empty)]), 1)
 
 
 class ReceiptNamesAreUniquePerPublish(unittest.TestCase):

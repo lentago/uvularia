@@ -10,7 +10,8 @@
       "window_days": 730,
       "evaluated": 1,
       "breaches": 0
-    }
+    },
+    "evaluated_at": "2026-10-03T12:00:00Z"
   },
   {
     "id": "ma-corp-annual-report",
@@ -23,7 +24,8 @@
       "window_days": 730,
       "evaluated": 1,
       "breaches": 0
-    }
+    },
+    "evaluated_at": "2026-10-03T12:00:00Z"
   },
   {
     "id": "ma-oml-meeting-notice",
@@ -36,7 +38,8 @@
       "window_days": 730,
       "evaluated": 24,
       "breaches": 2
-    }
+    },
+    "evaluated_at": "2026-10-03T12:00:00Z"
   },
   {
     "id": "ma-oml-minutes-timely",
@@ -49,6 +52,7 @@
       "window_days": 730,
       "evaluated": 23,
       "breaches": 8
-    }
+    },
+    "evaluated_at": "2026-10-03T12:00:00Z"
   }
 ]

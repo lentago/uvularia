@@ -2,7 +2,8 @@
 import Base from "../../layouts/Base.astro";
 import StateBadge from "../../components/StateBadge.astro";
 import { url } from "../../lib/url.mjs";
-import { standing, records, meta } from "../../lib/published.mjs";
+import { standing, records, meta, bundle } from "../../lib/published.mjs";
+import { evaluatedAt, isStale, buildNow, words, FRESH_HOURS } from "../../lib/fresh.mjs";
 import type { History } from "../../lib/types";
 
 // THE RULE (carried over from drosera's status page): a missing or unreadable
@@ -13,6 +14,14 @@ import type { History } from "../../lib/types";
 const rows = standing();
 const m = meta();
 const corpusIds = new Set(records().map((r) => r.doc_id));
+
+// A row is true only as of when it was evaluated (lib/fresh.mjs). Judged here at
+// build time, and again in the reader's browser by the script at the bottom, so
+// a page that stops being rebuilt still goes to "unknown" on its own.
+const b = bundle();
+const publishedAt = b?.published_at ?? null;
+const evaluated = evaluatedAt(rows, b);
+const stale = isStale(evaluated, buildNow());
 
 function gapPhrase(gap: number | null | undefined) {
   if (gap === null || gap === undefined) return "—";
@@ -41,6 +50,13 @@ function historyPhrase(h: History | null | undefined) {
     state alone cannot show. "No history yet" means there is no past deadline to
     summarise — not a clean record.
   </p>
+  <p>
+    Last published {publishedAt ? <time datetime={publishedAt}>{words(publishedAt)}</time> : "— unknown"}.
+    Evaluated {evaluated ? <time datetime={evaluated}>{words(evaluated)}</time> : "— unknown"}.
+    Each row is true as of when it was evaluated. The board is re-checked four
+    times a day and on every publish; a board not re-checked for a day shows every
+    row as unknown.
+  </p>
 
   {
     rows === null ? (
@@ -57,7 +73,13 @@ function historyPhrase(h: History | null | undefined) {
     ) : rows.length === 0 ? (
       <p class="notice">No obligations are declared in the vault yet.</p>
     ) : (
-      <>
+      <div id="board" data-evaluated-at={evaluated ?? ""} data-fresh-hours={FRESH_HOURS}>
+        <p class="notice stale" hidden={!stale}>
+          <StateBadge state="unknown" /> This board has not been re-checked since
+          {evaluated ? ` ${words(evaluated)}` : " an unknown time"}, more than a day
+          ago, so every row shows unknown. The colour in brackets is what the row
+          showed then; it may have changed since. Nothing here is shown as met.
+        </p>
         <table>
           <thead>
             <tr>
@@ -74,7 +96,12 @@ function historyPhrase(h: History | null | undefined) {
             {rows.map((r) => (
               <tr>
                 <td><code>{r.id}</code></td>
-                <td><StateBadge state={r.state} /></td>
+                <td>
+                  <span class="live" hidden={stale}><StateBadge state={r.state} /></span>
+                  <span class="stale" hidden={!stale}>
+                    <StateBadge state="unknown" /> <span class="muted">(was {r.state === "no-data" ? "no data" : r.state})</span>
+                  </span>
+                </td>
                 <td>
                   {r.satisfied_by ? (
                     corpusIds.has(r.satisfied_by) ? (
@@ -99,8 +126,28 @@ function historyPhrase(h: History | null | undefined) {
         <p class="muted" style="margin-top:1rem">
           Data last fetched {m.fetched_at ? <time datetime={m.fetched_at}>{m.fetched_at}</time> : "— unknown"}.
           “No data” is not a pass — it means there is nothing to show for that row.
+          “Unknown” is not a pass either — it means the board has not been re-checked
+          within the day.
         </p>
-      </>
+      </div>
     )
   }
+  {/* Runs once, on load. If the board was evaluated more than data-fresh-hours
+      ago by the reader's clock (or the page does not say when), it hides every
+      colour and shows "unknown". It never does the reverse. */}
+  <script is:inline>
+    (function () {
+      var board = document.getElementById("board");
+      if (!board) return;
+      var at = Date.parse(board.getAttribute("data-evaluated-at") || "");
+      var limit = Number(board.getAttribute("data-fresh-hours")) * 3600000;
+      if (!isNaN(at) && limit > 0 && Date.now() - at <= limit) return;
+      var live = board.querySelectorAll(".live"), gone = board.querySelectorAll(".stale");
+      for (var i = 0; i < live.length; i++) live[i].hidden = true;
+      for (var j = 0; j < gone.length; j++) gone[j].hidden = false;
+    })();
+  </script>
+  <style is:global>
+    [hidden] { display: none !important; }
+  </style>
 </Base>

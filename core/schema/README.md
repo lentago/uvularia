@@ -128,13 +128,14 @@ it, so it is the single source of compliance state.
 | `published_at` | When the satisfying record was published (server-side), or `null`. | A client time here misstates when the obligation was met. |
 | `gap` | Days relative to the deadline, or `null`. Negative is ahead of the deadline; positive is overdue. | A wrong sign flips "early" and "late". |
 | `history` | Track record over a trailing window — `{window_days, evaluated, breaches}` — or `null`. | A fabricated zero-breach row would flatter a rule the vault cannot actually vouch for. |
+| `evaluated_at` | The instant (UTC) the row was evaluated: the publish run's server-side time, or the time the scheduled re-evaluation ran. | A stale row shown as current: an amber that turned red on its deadline still reads amber. |
 
-Every field but `history` is **required**, and all but `id` and `state` are
-nullable. A row with missing data is `no-data` with explicit `null`s — never a
-silently omitted field and never a fake green. (Invariant 5.) `history` is
-optional for now only because it is new: see
+Every field but `history` and `evaluated_at` is **required**, and all but `id`
+and `state` are nullable. A row with missing data is `no-data` with explicit
+`null`s — never a silently omitted field and never a fake green. (Invariant 5.)
+`history` and `evaluated_at` are optional for now only because they are new: see
 [Compatibility between releases](#compatibility-between-releases). Today's
-`evaluate.py` always writes it.
+`evaluate.py` always writes both.
 
 `history` is the one thing a current-state row cannot show: a timely posting
 retires the red that late ones earned, so the live row forgets the lateness. It
@@ -146,6 +147,21 @@ When the window holds no past, receipt-dated deadline, `history` is `null` — t
 board says "no history yet", which is not the same as zero breaches.
 A row with no `history` key at all comes from a vault whose core is older than
 the field; the board reads it exactly like `null`.
+
+`evaluated_at` says how current a row is. A row is true only as of the instant it
+was evaluated: with nothing new published, an amber still turns red the day its
+deadline passes. So the vault re-evaluates on a schedule (the records template's
+`re-evaluate` workflow, four times a day) as well as on every publish, and every
+consumer applies one rule:
+
+- **A row evaluated more than 24 hours ago is unknown.** The board shows it as
+  "unknown", with the colour it last showed and when, never as that colour. The
+  limit is `FRESH_HOURS` in `evaluate.py`; consumers that cannot import it carry
+  the same number. Every state changes only when the UTC date changes, so a day's
+  limit with four runs a day leaves three runs of slack.
+- **An absent `evaluated_at` means the publish time.** A vault whose core is older
+  than the field evaluated only when it published, so a consumer reads the corpus
+  bundle's `published_at` in its place, and the 24-hour rule applies to that.
 
 ## receipt.schema.json — one publish, stamped
 
@@ -185,8 +201,8 @@ that keeps that from breaking a build:
   is the last release's shape. It must keep validating, so the checker catches a
   change that would turn an older vault's output into a failed build.
 
-Today this applies to `history` on standing rows: added in this release,
-optional until the next.
+Today this applies to `history` and `evaluated_at` on standing rows: added in
+this release, optional until the next.
 
 ## Examples and the checker
 

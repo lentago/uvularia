@@ -72,6 +72,30 @@ Each row is defined by [`standing.schema.json`](schema/standing.schema.json):
   left, as a negative number).
 - **`history`** — the rule's track record over a trailing window:
   `{window_days, evaluated, breaches}`, or `null`. See below.
+- **`evaluated_at`** — the instant this row was judged at: `--now`, which is the
+  publish run's server-side time on a publish and the run's own time on a
+  scheduled re-evaluation. See "How current a row is", below.
+
+## How current a row is
+
+A row is true as of the instant it was evaluated, not forever. With nothing new
+published, an amber still turns red the day its deadline passes, and a green
+cadence review still turns amber when its next due date comes into the warning
+window. Evaluating only when something is published would leave a board green on
+the day the thing fell due.
+
+So the vault evaluates twice over: on every publish, at the publish run's own
+time, and on a schedule (the records template's `re-evaluate` workflow, four times
+a day), at the time that run starts. The scheduled run rewrites `standing.json` and
+the board page; it writes no receipt, because receipts record what was published
+and standing is derived from them.
+
+Every state depends only on the UTC date, so a row evaluated today is right for
+the rest of today. The boards and the watcher allow a day: a row evaluated more
+than **24 hours** ago (`FRESH_HOURS`) shows as **unknown**, with the colour it last
+had and when, and the watcher opens an issue saying the schedule has stopped.
+Keep important deadlines on a person's calendar as well. The board tells you what
+the vault holds; only the filing receipt from the agency proves a filing landed.
 
 ## The track record, over time
 

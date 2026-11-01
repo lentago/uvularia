@@ -37,6 +37,13 @@ Each row also carries a ``history`` object — ``{window_days, evaluated,
 breaches}`` — or ``null`` when the window holds no past deadline with a
 receipt-dated outcome. History is measured from receipts and records, never from
 the current date alone, so a later timely posting never erases an earlier breach.
+
+Each row carries ``evaluated_at``, the instant this evaluation ran (``--now``),
+because a row is only true as of that instant: an amber turns red when its
+deadline passes whether or not anything is published. The publish workflow
+evaluates at its own server-side time; the scheduled re-evaluation evaluates at
+the time it runs. A consumer treats a row whose ``evaluated_at`` is more than
+``FRESH_HOURS`` old as unknown, never as the colour it last showed.
 """
 
 import argparse
@@ -53,6 +60,14 @@ SCHEMA_DIR = CORE_DIR / "schema"
 # member or regulator asks "how often were you late?" over a span, not a day; two
 # years is long enough to carry more than one cycle of a monthly or annual rule.
 DEFAULT_HISTORY_DAYS = 730
+
+# How long a standing row stays current after it was evaluated, in hours. Every
+# state here changes only when the UTC date changes, and the scheduled
+# re-evaluation runs four times a day, so a day's limit leaves three runs of
+# slack. Past it, the boards show the row as unknown and the watcher opens an
+# issue: a stale green is a fake green. Consumers that cannot import this module
+# carry the same number (schema/README.md, "standing.schema.json").
+FRESH_HOURS = 24
 
 # Reuse the schema validator the core already ships — do not re-invent it. It is
 # optional: if it cannot be imported the evaluator still runs; it only powers the
@@ -331,6 +346,11 @@ def parse_date(value):
         return None
     match = re.match(r"\d{4}-\d{2}-\d{2}", value.strip())
     return date.fromisoformat(match.group(0)) if match else None
+
+
+def format_instant(moment):
+    """An aware datetime as ``YYYY-MM-DDTHH:MM:SSZ`` in UTC, whole seconds."""
+    return moment.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def midnight_utc(day):
@@ -644,11 +664,13 @@ def _duplicate_ids(obligations):
 def evaluate(root, now=None, warn_days=7, history_days=DEFAULT_HISTORY_DAYS):
     """Evaluate the vault at ``root`` and return the standing rows, sorted by id.
 
-    Each row carries its current state and a ``history`` summary over the trailing
-    ``history_days`` window (``None`` when the window holds nothing datable)."""
+    Each row carries its current state, a ``history`` summary over the trailing
+    ``history_days`` window (``None`` when the window holds nothing datable), and
+    ``evaluated_at``, the instant ``now`` it was judged at."""
     root = Path(root)
     if now is None:
         now = datetime.now(timezone.utc)
+    evaluated_at = format_instant(now)
     obligations = load_obligations(root)
     dupes = _duplicate_ids(obligations)
     if dupes:
@@ -663,6 +685,7 @@ def evaluate(root, now=None, warn_days=7, history_days=DEFAULT_HISTORY_DAYS):
     for o in obligations:
         row = evaluate_obligation(o, records, pubs, now, warn_days)
         row["history"] = obligation_history(o, records, pubs, now, history_days)
+        row["evaluated_at"] = evaluated_at
         rows.append(row)
     rows.sort(key=lambda r: r["id"])
     return rows
