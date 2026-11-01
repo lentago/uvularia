@@ -3,13 +3,15 @@
 //   1. RENDERING — lib/ask.mjs over fixture replies shaped exactly like the Ask
 //      function's (tests/fixtures/ask/*.json): each of the four outcome words
 //      renders, a 503 and a kill-switch reply render the maintenance line, a 429
-//      renders the cap line, only the returned source_ids become links, an
-//      incident's banner comes before everything else, and a reply is never
-//      treated as HTML.
+//      renders the cap line, only the returned source_ids become links, the
+//      sources come with a "check the linked records" note and the contact
+//      beside them, an escalated reply carries the contact, an incident's
+//      banner comes before everything else, and a reply is never treated as
+//      HTML.
 //   2. BUILD — two real `astro build`s of the home page: with askUrl empty the page
 //      carries no widget markup at all; with askUrl set it carries the widget, the
-//      no-JavaScript link to the records index, the hidden form, and the
-//      disclaimer.
+//      no-JavaScript link to the records index, the hidden form, the contact,
+//      and the disclaimer.
 //
 //   node tests/ask.test.mjs
 //
@@ -21,7 +23,7 @@ import { readFileSync, rmSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-import { renderTurn, MAINTENANCE_LINE, CAP_LINE } from "../src/lib/ask.mjs";
+import { renderTurn, MAINTENANCE_LINE, CAP_LINE, CHECK_LINE } from "../src/lib/ask.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
@@ -37,6 +39,9 @@ const CONFIG_TS = readFileSync(join(ROOT, "site.config.ts"), "utf8");
 // template, "/<org>-site" in a client's copy, or none), normalised to "/…/".
 const BASE_MATCH = CONFIG_TS.match(/^\s*base:\s*"([^"]*)"/m);
 const BASE_PATH = ((BASE_MATCH ? BASE_MATCH[1] : "") || "/").replace(/\/?$/, "/");
+// The contact the committed config sets ("records@example.org" in the template).
+const CONTACT_MATCH = CONFIG_TS.match(/^\s*contact:\s*"([^"]*)"/m);
+const CONFIG_CONTACT = CONTACT_MATCH ? CONTACT_MATCH[1] : "";
 const DISCLAIMER_PART = "legal, financial, or professional advice";
 
 let failures = 0;
@@ -52,7 +57,9 @@ const reply = (name) => JSON.parse(readFileSync(join(HERE, "fixtures", "ask", `$
 const CTX = {
   recordsBase: "/your-org-site/records/",
   knownIds: new Set(["2026-09-14-september-meeting-notice", "2026-09-16-board-minutes"]),
+  contact: "records@example.org",
 };
+const MAILTO = 'href="mailto:records@example.org"';
 const render = (name, question = "When was the September meeting?") => {
   const { status, body } = reply(name);
   return renderTurn({ question, status, body }, CTX);
@@ -90,6 +97,41 @@ expect("incident renders a banner", banner !== -1);
 expect("incident banner carries the notice text", incident.includes("September minutes are overdue"));
 expect("incident banner comes before the outcome word", banner !== -1 && banner < incident.indexOf(word("Incident")));
 expect("incident banner comes before the sources", banner < incident.indexOf('class="ask-sources"'));
+
+// The sources and the escalation path, shown together: a source link is for
+// checking, not proof (uvularia#117).
+const check = (html) => html.indexOf('class="muted ask-check"');
+expect("answered asks the reader to check the linked records", answered.includes(CHECK_LINE));
+expect(
+  "the check note comes right after the sources",
+  check(answered) > answered.indexOf('class="ask-sources"') && check(answered) > answered.indexOf("</ul>"),
+);
+expect("the check note carries the contact, linked", answered.slice(check(answered)).includes(MAILTO));
+expect("an incident with sources carries the check note too", incident.includes(CHECK_LINE) && incident.includes(MAILTO));
+for (const name of ["declined", "escalated", "wrong-origin-403"]) {
+  expect(`${name} shows no check note (it cites nothing)`, !render(name).includes("ask-check"));
+}
+
+const escalated = render("escalated");
+expect("escalated carries the contact", escalated.includes('class="ask-contact"') && escalated.includes(MAILTO));
+expect("declined carries no contact line", !render("declined").includes("ask-contact"));
+
+const unsourced = render("unsourced-fallback");
+expect("the function's unsourced fallback renders as Escalated", unsourced.includes(word("Escalated")));
+expect("the unsourced fallback shows the function's reply", unsourced.includes("so I won&#39;t guess"));
+expect("the unsourced fallback lists no sources", !unsourced.includes("ask-sources"));
+expect("the unsourced fallback carries the contact", unsourced.includes(MAILTO));
+
+const answeredBody = reply("answered").body;
+const withCtx = (ctx) => renderTurn({ question: "q", status: 200, body: answeredBody }, { ...CTX, ...ctx });
+const noContact = withCtx({ contact: "" });
+expect(
+  "no contact configured → the note says so in words, with no link",
+  noContact.includes("contact the organization directly.") && !noContact.includes("mailto:"),
+);
+expect("a web-address contact is linked as itself", withCtx({ contact: "https://example.org/contact" }).includes('href="https://example.org/contact"'));
+const oddContact = withCtx({ contact: "javascript:alert(1)" });
+expect("a contact that is neither email nor http(s) is shown, never linked", oddContact.includes("javascript:alert(1)") && !oddContact.includes('href="javascript'));
 
 for (const name of ["unconfigured-503", "kill-switch-200"]) {
   const html = render(name);
@@ -181,6 +223,11 @@ expect("askUrl → the form is hidden until the script runs", /<form hidden[^>]*
 expect("the template config carries the disclaimer", CONFIG_TS.includes(DISCLAIMER_PART));
 expect("askUrl → the disclaimer is under the box", withAsk.includes(DISCLAIMER_PART));
 expect("askUrl → the known record ids are embedded for citation links", withAsk.includes("2026-09-16-board-minutes"));
+expect(
+  "askUrl → the site's contact is embedded for the escalation path",
+  // A copy whose contact this regex cannot read still has to embed one.
+  withAsk.includes(CONFIG_CONTACT ? `data-contact="${CONFIG_CONTACT}"` : "data-contact="),
+);
 
 console.log("");
 if (failures) {

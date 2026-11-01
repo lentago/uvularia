@@ -32,7 +32,7 @@ working stopping point.
 | :-- | :-- | :-- | :-- |
 | **1. The vault** | your records, a web form to add one, receipts with server-side timestamps, and a plain public board | one repository, `<org>-records` | this page |
 | **2. A proper site** | the same board with your own name, colours and pages, and a place for the Ask widget | one repository, `<org>-site` | the [site template README](templates/site/README.md) |
-| **3. The Ask box** | grounded answers from your records, with citations, that refuse what the records don't say | one repository, `<org>-ask-rules`, and an AWS account | the [rules template README](templates/ask-rules/README.md) and the [Ask function README](templates/ask-function/README.md) |
+| **3. The Ask box** | a source-linked assistant: answers that link the records they cite, for readers to check, and refuse what the records don't say | one repository, `<org>-ask-rules`, and an AWS account | the [rules template README](templates/ask-rules/README.md) and the [Ask function README](templates/ask-function/README.md) |
 | **4. The operator pane** | one row, left to right: intake, review, publish, serve, ask; alerts that open Issues | a free Grafana Cloud account | the records template's **Watch the pipeline** section and drosera's [event contract](https://github.com/lentago/drosera/blob/main/docs/clients/uvularia.md) |
 
 Why separate repositories at all, once you climb? Because GitHub's review rules
@@ -207,13 +207,21 @@ the Actions tab to see a change at once. A `base` mismatch hides your CSS.
 **Skip this if** you do not want a model answering questions from your records.
 Rungs 1 and 2 have no AI in them and stand on their own.
 
-**What you get:** a small function in **your** AWS account that answers a
-question only from the published records, cites the record ids it used, and
-refuses what the records don't say. Its rules (what it may talk about, what it
-always refuses, the model it uses, a daily cap, a kill switch) live in a third
-repository, `<org>-ask-rules`, from
+**What you get:** a small function in **your** AWS account that answers
+questions about the published records, links every answer to the records it
+cites, and refuses what the records don't say. Its rules (what it may talk
+about, what it always refuses, the model it uses, a daily cap, a kill switch)
+live in a third repository, `<org>-ask-rules`, from
 [`lentago/uvularia-rules-template`](https://github.com/lentago/uvularia-rules-template),
 so a rule change is reviewed like a record and can never alter a fact.
+
+It is a source-linked assistant, not an authority. The links let a reader check
+an answer, the widget asks them to, and your contact sits beside the sources. An
+answer with no real record behind it goes back to the reader as one that needs a
+person. Questions are logged, cut short, in your own accounts, and are sent to
+the model provider; the
+[Ask function README](templates/ask-function/README.md#questions-and-privacy)
+says how to shorten or turn off that logging.
 
 **You add:** that repository, the Ask function code copied into it as
 `ask-function/` (the template README says how), an AWS account with a budget

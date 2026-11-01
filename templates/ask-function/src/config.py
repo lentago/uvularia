@@ -76,6 +76,10 @@ class Config:
     loki_push_url: str = ""
     loki_token_ssm_path: str = ""
     loki_cluster: str = ""
+    # How much of each question the turn log (CloudWatch) and the `asked` event
+    # (Loki) keep, in characters. 500 is also the ceiling; 0 keeps no question
+    # text at all. The question still goes to the model provider in full.
+    question_log_chars: int = 500
 
     @classmethod
     def from_env(cls) -> "Config":
@@ -103,4 +107,5 @@ class Config:
             loki_push_url=os.environ.get("UVULARIA_LOKI_PUSH_URL", "").strip(),
             loki_token_ssm_path=os.environ.get("UVULARIA_LOKI_TOKEN_SSM_PATH", "").strip(),
             loki_cluster=os.environ.get("UVULARIA_LOKI_CLUSTER", "").strip(),
+            question_log_chars=_int("UVULARIA_QUESTION_LOG_CHARS", 500),
         )

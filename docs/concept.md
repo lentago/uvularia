@@ -1,6 +1,6 @@
 # uvularia — concept
 
-A client-owned records vault with a grounded Ask box and a live compliance board.
+A client-owned records vault with a source-linked Ask box and a live compliance board.
 
 **Status:** accepted 2026-10-03 as [ADR-0009](https://github.com/lentago/.github/blob/main/docs/adr/0009-uvularia-client-owned-records-vault.md) in `lentago/.github`. This document is the living architecture; update it when a decision changes.
 **Supersedes:** [.github#128](https://github.com/lentago/.github/issues/128) (Ask-the-Records kit, closed into [.github#200](https://github.com/lentago/.github/issues/200)). **Feeds:** .github#130 (funder-report fact pipeline), .github#122 (Good-Standing Kit), lupinus story 03 (Stillwater Brook).
@@ -10,7 +10,7 @@ A client-owned records vault with a grounded Ask box and a live compliance board
 
 ## 1. What it is, in one paragraph
 
-A nonprofit, HOA, land trust, or town committee keeps its public records — minutes, notices, bylaws, policies, filings, announcements — as an Obsidian-compatible Markdown vault in its own GitHub organization. Three separate pipelines consume that vault: one publishes the corpus, one governs the model rules for an Ask box that answers only from the corpus, and one builds the public site and announcement feed. Obligations ("meeting notice posted at least 48 hours ahead", "minutes posted within 30 days", "conflict-of-interest policy reviewed annually") are declared as code next to the records that satisfy them, evaluated on every publish, and shown live on a public "Is it posted?" board and on an operator dashboard in the org's own Grafana Cloud free tier. The tech director's job is to drop a document and a sentence into intake and merge a pull request. Everything else is a receipt.
+A nonprofit, HOA, land trust, or town committee keeps its public records — minutes, notices, bylaws, policies, filings, announcements — as an Obsidian-compatible Markdown vault in its own GitHub organization. Three separate pipelines consume that vault: one publishes the corpus, one governs the model rules for an Ask box that answers from the corpus and links every answer to the records it cites, and one builds the public site and announcement feed. Obligations ("meeting notice posted at least 48 hours ahead", "minutes posted within 30 days", "conflict-of-interest policy reviewed annually") are declared as code next to the records that satisfy them, evaluated on every publish, and shown live on a public "Is it posted?" board and on an operator dashboard in the org's own Grafana Cloud free tier. The tech director's job is to drop a document and a sentence into intake and merge a pull request. Everything else is a receipt.
 
 It is the pondviewlane pattern with the parts that made it one community's site removed, mitchella's engine put behind it, and compliance evidence made a by-product of publishing rather than a separate chore.
 
@@ -156,8 +156,8 @@ The site and the vault pick up new core releases at different times, so the site
 
 - **Signal providers.** Drop the drosera status provider. Add a `StandingProvider` that reads `standing.json`: any obligation in breach becomes an incident whose subjects are the obligation's subjects. Add an `AnnouncementProvider` that surfaces active announcements matching the question's subjects. Keep the manual override provider, now fed from the rules repo. This is the single most valuable change: the box structurally cannot claim compliance the board denies.
 - **Runtime.** A Python Lambda with a Function URL in the client's AWS account (solidago's `ask-lambda` module lineage, hardened): API key in an SSM SecureString rather than a plaintext env var; a durable daily cap in a DynamoDB free-tier table rather than per-container memory; prompt caching on; a Turnstile or equivalent bot check in front; model pinned to Sonnet, not Opus, for a public box. Lambda and DynamoDB are always-free at this volume; the Anthropic spend cap is the hard ceiling. Pondview's browser-side keyword prefilter stays available as the fallback once a corpus passes ADR-0002's soft ceiling.
-- **Telemetry.** Turn-log lines go to the org's Grafana Cloud Loki over HTTPS push (the path betula already uses from the Firewalla), not to local disk. Question text truncated per pondview ADR-0003; no identity.
-- **Citations.** The widget renders the sources the model actually cited and the gate verified, not the passages that were sent. Pondview has this backwards today.
+- **Telemetry.** Turn-log lines go to the org's Grafana Cloud Loki over HTTPS push (the path betula already uses from the Firewalla), not to local disk. Question text truncated per pondview ADR-0003, and the adopter can shorten it or turn it off (`question_log_chars`, 0 keeps none); no identity. The question itself always goes to the model provider.
+- **Citations.** The widget renders the sources the model actually cited and the gate found in the corpus, not the passages that were sent. Pondview has this backwards today. The gate checks that a cited id exists, not that the record supports the claim, so the box is described as source-linked, never as verified: an `answered` reply left with no real record is sent as `escalated`, and the widget shows the sources with a note to check them and the organization's contact beside them (#117). Entailment checking is out of scope; the engine's eval set for unsupported claims is [mitchella#11](https://github.com/lentago/mitchella/issues/11).
 
 **Cost shape.** Lambda, DynamoDB, Pages, Actions, Grafana Cloud: free tier. Model tokens: a corpus of a few hundred records sits well under the cache ceiling, and cache reads cost roughly a tenth of input price, so a question costs pennies and the daily cap bounds the month. The org holds its own Anthropic key and sees its own bill.
 
@@ -224,7 +224,7 @@ Core and clients, per the fleet principle. Adding a client must not touch anothe
 | Phase | Scope | Receipt | Tier |
 |---|---|---|---|
 | **0 · Vault + board** (2–3 weeks) | vault template, schema, validator, obligation evaluator, Issue-form intake, publish workflow with receipts and attestation, "Is it posted?" board on Pages, Stillwater seed data, ADOPTION.md, timed dry-run | the board live for Stillwater; a dry-run receipt with elapsed time | Kit |
-| **1 · Ask box** (3–4 weeks) | rules repo + eval gate, mitchella providers for standing and announcements, Lambda module hardened, widget with verified citations, turn log to Loki | a live answer that cites a record; a live refusal during a manufactured breach | Platform |
+| **1 · Ask box** (3–4 weeks) | rules repo + eval gate, mitchella providers for standing and announcements, Lambda module hardened, source-linked widget, turn log to Loki | a live answer that cites a record; a live refusal during a manufactured breach | Platform |
 | **2 · Operator pane** (2 weeks) | Actions → Loki composite step, pipeline dashboard JSON, alerts → Issues, stale-digest alert | the left-to-right dashboard in a fresh Grafana free-tier stack | Pattern → Kit |
 | **3 · Consumers** | funder-report pipeline (#130) and Good-Standing reconciliation (#122) reading the same vault; multi-voice pages | one program number committed once, cited in three outputs | — |
 

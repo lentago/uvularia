@@ -52,10 +52,13 @@ change cannot smuggle either.
 The Ask box is [mitchella](https://github.com/lentago/mitchella)'s engine with
 two added signals: an obligation in breach becomes an incident on its subjects,
 and active announcements surface first. The box therefore cannot claim
-compliance the board denies. The Ask function is the first swing at a **front
-desk** (an assistant that answers from your own records and refuses what they
-don't say): mitchella's engine, boxed in and run serverless in your own AWS
-account. [mitchella](https://github.com/lentago/mitchella) is meant to be the
+compliance the board denies. It is source-linked, not proven: an answer always
+cites at least one real record, and the widget shows those records with a note
+asking the reader to check them and the organization's contact beside them. The Ask
+function is the first swing at a **front desk** (an assistant that answers from
+your own records and refuses what they don't say): mitchella's engine, boxed in
+and run serverless in your own AWS account.
+[mitchella](https://github.com/lentago/mitchella) is meant to be the
 production front desk, the one that will answer through many front ends: Slack,
 a website widget, email or a ticket system such as RT, the command line.
 
@@ -64,7 +67,7 @@ a website widget, email or a ticket system such as RT, the command line.
 | Phase | Scope | Receipt |
 |---|---|---|
 | **0 · Vault + board** | vault template, schema, validator, obligation evaluator, Issue-form intake, publish receipts and attestation, the public board on Pages, the demonstration client, `ADOPTION.md`, a timed dry-run | **recorded** ([2026-10-03](receipts/2026-10-03-agent-run.md)): the board live for the demonstration client; a dry-run receipt with elapsed time |
-| **1 · Ask box** | rules repo and eval gate, mitchella signal providers, a hardened serverless module, the widget with verified citations | **recorded in part** ([2026-10-12](receipts/2026-10-12-ask-live-answer.md)): a live answer that cites a record, and a live refusal of a legal question; the refusal during a manufactured breach is still open. Built in [#37](https://github.com/lentago/uvularia/pull/37), [#45](https://github.com/lentago/uvularia/pull/45), [#49](https://github.com/lentago/uvularia/pull/49) |
+| **1 · Ask box** | rules repo and eval gate, mitchella signal providers, a hardened serverless module, the source-linked widget | **recorded in part** ([2026-10-12](receipts/2026-10-12-ask-live-answer.md)): a live answer that cites a record, and a live refusal of a legal question; the refusal during a manufactured breach is still open. Built in [#37](https://github.com/lentago/uvularia/pull/37), [#45](https://github.com/lentago/uvularia/pull/45), [#49](https://github.com/lentago/uvularia/pull/49) |
 | **2 · Operator pane** | an Actions-to-Loki push step, the left-to-right pipeline dashboard in your Grafana Cloud free tier, alerts that open Issues | **not yet recorded**: the dashboard in a fresh free-tier stack. Built in [#58](https://github.com/lentago/uvularia/pull/58), [#60](https://github.com/lentago/uvularia/pull/60) here and the [dashboard](https://github.com/lentago/drosera/blob/main/dashboards/uvularia-pipeline.json) in drosera |
 | **3 · Consumers** | the funder-report pipeline and the good-standing reconciliation reading the same vault | **not started**: one number committed once, cited in three outputs |
 
