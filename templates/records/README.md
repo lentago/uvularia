@@ -42,9 +42,10 @@ a two-minute pull request.
 
 1. Click **Use this template → Create a new repository**. Name it
    `<your-org>-records`. Make it **public** — the vault holds only public records,
-   and branch protection is free only on public repositories. A private
-   repository does not make intake safe to rely on, and branch protection on a
-   private repository is not free on every GitHub plan: it needs a paid plan.
+   and on GitHub's free plan both branch protection and GitHub Pages work only on
+   public repositories. A private repository would keep drafts and issues out of
+   view, but then the review gate and the board need a paid plan
+   ([GitHub's plans](https://docs.github.com/en/get-started/learning-about-github/githubs-plans)).
 2. Edit [`index.md`](index.md) to name your organization.
 3. Set your reviewers in [`.github/CODEOWNERS`](.github/CODEOWNERS) (replace the
    placeholder), then in **Settings → Branches** add a protection rule for `main`:
@@ -374,8 +375,9 @@ appends to the `published` branch:
 | a provenance attestation | a signed statement that this corpus came from this commit |
 
 Only **approved, public** records publish. Nothing in `intake/` is ever built —
-it is scratch space (still visible in this public repository), and the checks forbid a published page from even linking to
-it. A published record is never deleted; it is superseded or retracted.
+it is scratch space (still visible in this public repository), and the checks
+forbid a published page from even linking to it. A published record is never
+deleted; it is superseded or retracted.
 
 ---
 
