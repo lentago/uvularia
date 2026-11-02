@@ -182,6 +182,21 @@ console.log("\n# building a day and a second after the board was evaluated");
   expect("exactly at valid_until is still current", tbody(visible(fresh)).includes(GREEN_SWATCH));
 }
 
+// --- the home page's one-line summary follows the same rule (uvularia#127) ---
+console.log("\n# the home page summary, current and lapsed");
+{
+  const HOME = join(ROOT, "dist", "index.html");
+  build(GOOD);
+  const current = visible(readFileSync(HOME, "utf8"));
+  expect("a current home page counts the colours", current.includes("1 green, 1 amber, 1 red, 1 no-data"));
+  expect("a current home page counts no unknown rows", !current.includes(" unknown"));
+  build(GOOD, { now: "2026-10-02T14:03:12Z" });
+  const lapsed = readFileSync(HOME, "utf8");
+  expect("a lapsed home page counts every row as unknown", visible(lapsed).includes("0 green, 0 amber, 0 red, 0 no-data, 4 unknown"));
+  expect("the summary carries the earliest valid_until for the browser check",
+    /id="board-summary" data-valid-until="2026-10-02T14:03:11Z"/.test(lapsed));
+}
+
 // --- 6. one row lapses at midnight, the others hold ---------------------------
 console.log("\n# building with one row that changes at the next midnight");
 {

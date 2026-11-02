@@ -10,7 +10,8 @@ standing file, a feed, and a receipt served on the vault's `published` branch. I
 never reads the vault's working files, so the site can never show a fact the vault
 has not published. There is no database and no server. The JavaScript in your
 readers' browsers is the optional Ask box (section 4) and a few lines on the board
-that can only hide colours (section 3); the site works without either.
+and in the home page's board summary that can only hide colours (section 3); the
+site works without either.
 
 You edit exactly one file: [`site.config.ts`](site.config.ts). It holds your values
 and nothing else. What each setting means is documented in
