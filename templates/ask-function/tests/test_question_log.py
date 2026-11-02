@@ -9,6 +9,7 @@ Terraform module sets from ``var.question_log_chars``.
 
 import dataclasses
 import json
+import io
 import os
 import re
 import unittest
@@ -129,6 +130,13 @@ class QuestionLogConfig(unittest.TestCase):
     def test_read_from_the_environment(self):
         self.assertEqual(self._from_env(UVULARIA_QUESTION_LOG_CHARS="0").question_log_chars, 0)
         self.assertEqual(self._from_env(UVULARIA_QUESTION_LOG_CHARS="80").question_log_chars, 80)
+
+    def test_a_value_that_will_not_parse_keeps_none_and_says_so(self):
+        # A privacy setting fails closed: "off" or a typo must not restore 500.
+        for raw in ("off", "zero", "5o"):
+            with self.subTest(raw=raw), mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+                self.assertEqual(self._from_env(UVULARIA_QUESTION_LOG_CHARS=raw).question_log_chars, 0)
+                self.assertIn("UVULARIA_QUESTION_LOG_CHARS", err.getvalue())
 
     def test_the_field_has_a_default_so_older_callers_still_build(self):
         field = {f.name: f for f in dataclasses.fields(Config)}["question_log_chars"]
