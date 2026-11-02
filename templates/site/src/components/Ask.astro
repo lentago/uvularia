@@ -14,22 +14,24 @@
 // carries none of it.
 import { url } from "../lib/url.mjs";
 import { records } from "../lib/published.mjs";
-import { askUrl, askDisclaimer } from "../lib/ask-config.mjs";
+import { askUrl, askDisclaimer, askContact } from "../lib/ask-config.mjs";
 
 const endpoint = askUrl();
 const disclaimer = askDisclaimer();
+// Shown beside the sources and on an escalated reply: the way to ask a person.
+const contact = askContact();
 const recordsBase = url("records/");
 // The ids this site has a page for, so a citation links only where a page exists.
 const knownIds = JSON.stringify(records().map((r) => r.doc_id)).replace(/</g, "\\u003c");
 ---
 
-<section class="ask card" data-ask data-ask-url={endpoint} data-records-base={recordsBase}>
+<section class="ask card" data-ask data-ask-url={endpoint} data-records-base={recordsBase} data-contact={contact}>
   <h2 style="margin-top:0">Ask the records</h2>
   <p data-ask-fallback>
     Looking for something? <a href={recordsBase}>Browse the records index</a>.
   </p>
   <form hidden data-ask-form>
-    <label for="ask-question">Ask a question about what has been published. Answers cite the records they come from.</label>
+    <label for="ask-question">Ask a question about what has been published. Each answer links the records it cites, so you can check it.</label>
     <textarea id="ask-question" name="question" rows="3" maxlength="1000" required></textarea>
     <div class="ask-actions">
       <button type="submit">Ask</button>
@@ -144,7 +146,11 @@ const knownIds = JSON.stringify(records().map((r) => r.doc_id)).replace(/</g, "\
     } catch {
       knownIds = [];
     }
-    const ctx = { recordsBase: root.dataset.recordsBase || "", knownIds: new Set(knownIds) };
+    const ctx = {
+      recordsBase: root.dataset.recordsBase || "",
+      knownIds: new Set(knownIds),
+      contact: root.dataset.contact || "",
+    };
 
     let turns: AskTurn[] = load();
     const draw = () => {

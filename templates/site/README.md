@@ -110,10 +110,14 @@ restart it.
 ## 4. Turn on the Ask box (optional)
 
 **What you are about to do:** put a question box on your home page that answers
-from your published records and links the records it used.
+questions about your published records and links the records each answer cites.
+It is a source-linked assistant, so its answers need checking: the box shows the
+sources with a note asking the reader to check them, and your `contact` beside
+them.
 
 **Why bother:** people ask the same questions over and over. The box answers them
-from what you have published and points to the record behind each answer.
+and points to the records behind each answer, so a reader can check it and knows
+who to ask when the records don't settle it.
 
 **How long:** five minutes, once your Ask function is deployed (the
 `ask-function` template, deployed from your rules repo).
@@ -130,10 +134,13 @@ from what you have published and points to the record behind each answer.
 **How you know it worked:** the home page shows **Ask the records**. Ask something
 your records cover. The reply is labelled in words (**Answered**, **Incident**,
 **Escalated**, or **Declined**) and lists only the records the function cited, each
-linked to its page.
+linked to its page. Under the sources is "Check the linked records before you
+rely on this answer" and your contact from `site.config.ts`.
 
 What a reader sees in other cases:
 
+- If the function can't point to a real record for an answer, the reply comes
+  back **Escalated**, with your contact, instead of as an unsourced answer.
 - If the box is switched off in `policy.yaml`, or the function is not set up or
   cannot be reached, they see "The Ask box is off right now" and a link to the
   records index.
@@ -143,9 +150,13 @@ What a reader sees in other cases:
 - If JavaScript is off, there is no box. They get a link to the records index,
   and every other page works the same.
 
-The box sends only the question: no cookies and no referrer. It logs nothing.
-The conversation is kept in the browser tab's session storage and is gone when
-the tab closes. Leave `askUrl` empty and the site has no Ask box at all.
+The box sends only the question: no cookies and no referrer. The widget itself
+logs nothing, and keeps the conversation in the browser tab's session storage,
+gone when the tab closes. The Ask function does log each question, cut short, in
+your own AWS account (and your Grafana Cloud, if you set that up), and sends it
+to the model provider. Its README's **Questions and privacy** section says where
+and how to shorten or turn off that logging. Leave `askUrl` empty and the site
+has no Ask box at all.
 
 ---
 

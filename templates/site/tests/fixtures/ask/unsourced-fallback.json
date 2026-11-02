@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "body": {
+    "kind": "escalated",
+    "reply": "I can't point to a published record that answers that, so I won't guess. Please ask the organization directly.",
+    "source_ids": [],
+    "degraded_signals": []
+  }
+}

@@ -1,4 +1,4 @@
-// The Ask box's two settings, read at build time from site.config.ts (via
+// The Ask box's settings, read at build time from site.config.ts (via
 // src/config.ts, which accepts every shape that file has had).
 //
 // UVULARIA_ASK_URL overrides askUrl when it is set (even to ""), the same way
@@ -13,4 +13,10 @@ export function askUrl() {
 
 export function askDisclaimer() {
   return String(config.askDisclaimer || "").trim();
+}
+
+// The escalation path the widget shows beside the sources: the site's own
+// contact, the same one the footer shows.
+export function askContact() {
+  return String(config.contact || "").trim();
 }
