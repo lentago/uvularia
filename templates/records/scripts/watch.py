@@ -48,8 +48,9 @@ the board page, never a receipt.)
 **It never closes on missing data.** An issue closes only when the data says the
 condition has cleared: the obligation is green, the digests match, the cap is
 below 80 %. If a file can't be read, or an obligation shows ``no-data``, the
-issue is left as it is. A green on a board that has not been re-checked within
-the day is not current either, so it closes nothing. Unreachable data fails the run (GitHub emails you about
+issue is left as it is. A green row past its ``valid_until`` (or, from an older
+core, a day after the board was evaluated) is not current either, so it closes
+nothing. Unreachable data fails the run (GitHub emails you about
 a failed scheduled run); a vault that has not published yet is a notice.
 
 Python 3.12, standard library only.
@@ -230,14 +231,23 @@ def evaluation(standing, bundle, now):
     )
 
 
-def obligations(standing, open_keys, current=True):
+def row_current(row, evaluated, now):
+    """Is this row still current: inside its own ``valid_until``, or for a row
+    from an older core, within a day of when the board was evaluated?"""
+    lapse = _parse_time(row.get("valid_until"))
+    if lapse is None and evaluated is not None:
+        lapse = evaluated + FRESH_AFTER
+    return lapse is not None and now <= lapse
+
+
+def obligations(standing, open_keys, current=lambda row: True):
     """One finding per obligation that is amber or red, or has an open issue.
 
     Amber and red are ACTIVE. Green CLEARs an open issue. ``no-data`` is UNKNOWN:
     missing data is not a passing obligation, so it never closes an issue. An
-    obligation that has vanished from standing.json is left alone too. When the
-    board is not ``current`` (not re-checked within the day), a green is only what
-    the row showed then, so it is UNKNOWN too.
+    obligation that has vanished from standing.json is left alone too. A green
+    row that is no longer ``current(row)`` is only what the row showed when it was
+    evaluated, so it is UNKNOWN too.
     """
     prefix = "obligation:"
     rows = {row["id"]: row for row in standing}
@@ -247,12 +257,11 @@ def obligations(standing, open_keys, current=True):
         state = row.get("state")
         if state in ("amber", "red"):
             findings.append(_obligation_issue(key, row))
-        elif state == "green" and not current:
+        elif state == "green" and not current(row):
             if key in open_keys:
                 findings.append(Finding(key, UNKNOWN, note=f"`{oid}` showed green, but the "
-                                                           "board has not been re-checked "
-                                                           "within the day; leaving its "
-                                                           "issue open"))
+                                                           "row is past its valid_until; "
+                                                           "leaving its issue open"))
         elif state == "green":
             if key in open_keys:
                 findings.append(Finding(key, CLEAR, note=(
@@ -567,9 +576,10 @@ def run(*, base, health_url, gh, now, fetch=http_json, log=print, dry_run=False)
     else:
         findings += [stale_digest(bundle, health, now), cap(health)]
     if standing is not None:
-        fresh = evaluation(standing, bundle, now)
-        findings.append(fresh)
-        findings += obligations(standing, open_keys, current=fresh.status == CLEAR)
+        findings.append(evaluation(standing, bundle, now))
+        when = evaluated_at(standing, bundle)
+        findings += obligations(standing, open_keys,
+                                current=lambda row: row_current(row, when, now))
 
     for f in findings:
         if f.status == UNKNOWN:

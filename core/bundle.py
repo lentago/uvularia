@@ -434,17 +434,22 @@ def _stage_receipts(vault, receipts):
 
 
 def latest_receipt(receipts):
-    """The receipt with the latest ``published_at`` in ``receipts``, or None."""
+    """The receipt with the latest ``published_at`` in ``receipts``, or None when
+    there are none.
+
+    Every receipt must read cleanly. One that does not raises ``ValueError``
+    rather than being skipped: skipping a broken newest receipt would quietly
+    re-judge an older commit and publish that as the current board."""
     newest = None
     for path in sorted(Path(receipts).glob("*.md")) if Path(receipts).is_dir() else []:
         try:
             receipt = _evaluate._load_structured(path)
-        except (OSError, UnicodeDecodeError, ValueError):
-            continue
-        if not isinstance(receipt, dict):
-            continue
-        when = _evaluate.parse_datetime(receipt.get("published_at"))
-        if when is not None and (newest is None or when > newest[0]):
+        except (OSError, UnicodeDecodeError, ValueError) as exc:
+            raise ValueError(f"{path.name}: unreadable receipt ({exc})") from exc
+        when = _evaluate.parse_datetime(receipt.get("published_at")) if isinstance(receipt, dict) else None
+        if when is None:
+            raise ValueError(f"{path.name}: receipt has no readable published_at")
+        if newest is None or when > newest[0]:
             newest = (when, receipt)
     return newest[1] if newest else None
 
@@ -494,7 +499,11 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     if args.command == "last-commit":
-        receipt = latest_receipt(args.receipts)
+        try:
+            receipt = latest_receipt(args.receipts)
+        except ValueError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
         commit = str((receipt or {}).get("commit") or "")
         if not re.fullmatch(r"[0-9a-f]{7,40}", commit):
             print(f"error: no receipt under {args.receipts} names a commit", file=sys.stderr)

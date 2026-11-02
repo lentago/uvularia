@@ -10,15 +10,19 @@
 # Each run:
 #   1. reads the newest receipt on the `published` branch and checks out the
 #      commit it published, so it judges exactly what the public can see;
-#   2. runs the one evaluator (core/bundle.py evaluate) at this run's own clock;
-#   3. rewrites standing.json, whose rows now carry this run's `evaluated_at`,
-#      and the board page (index.html) on the `published` branch, and pushes.
+#   2. runs that commit's own evaluator (core/bundle.py evaluate) at this run's
+#      clock, so the same code that published the board re-judges it;
+#   3. rewrites standing.json, whose rows now carry this run's `evaluated_at` and
+#      their `valid_until`, and the board page (that commit's scripts/board.py)
+#      on the `published` branch, and pushes.
 #
 # It writes NO receipt and no corpus. Receipts record what was published; standing
 # is derived from them. Every state changes only when the UTC date changes, so the
-# 00:17 UTC run picks up the day's changes and the other three are spares. The
-# boards and the watch workflow treat a board not re-checked for 24 hours as
-# unknown (core/evaluate.md, "How current a row is").
+# 00:17 UTC run picks up the day's changes and the other three are spares. A row
+# that would change at the next midnight says so in its `valid_until`, and the
+# boards show it as unknown from then until this workflow re-checks it; any row
+# not re-checked for 24 hours shows as unknown too, and the watch workflow opens
+# an issue (core/evaluate.md, "How current a row is").
 #
 # If a publish lands while this runs, this run's push is refused and it stops
 # green: the publish wrote a fresher board. The publish workflow retries its own
@@ -81,13 +85,14 @@ jobs:
         if: steps.src.outputs.ready == 'true'
         run: |
           set -euo pipefail
-          python3 core/bundle.py evaluate \
+          # The published commit's own core and board script, not this branch's.
+          python3 _src/core/bundle.py evaluate \
             --vault _src \
             --receipts _pub/receipts \
             --out _out \
             --now "$EVALUATED_AT"
           cp _out/standing.json _pub/standing.json
-          python3 scripts/board.py --vault _src --artifacts _pub --out _pub/index.html
+          python3 _src/scripts/board.py --vault _src --artifacts _pub --out _pub/index.html
 
       - name: Push the re-evaluated board (no receipt; standing is derived)
         if: steps.src.outputs.ready == 'true'

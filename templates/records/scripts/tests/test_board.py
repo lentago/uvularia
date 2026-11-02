@@ -176,7 +176,7 @@ class FreshAndStaleBoards(BoardCase):
         self.assertIn("Evaluated ", page)
         self.assertIn(">green</span>", shown)
         self.assertNotIn(">unknown</span>", visible(self.tbody(page)))
-        self.assertNotIn("has not been re-checked", shown)
+        self.assertNotIn("A row marked unknown", shown)
 
     def test_stale_board_shows_unknown_and_never_its_last_green(self):
         self.stamped("2026-10-03T12:00:00Z")
@@ -187,7 +187,7 @@ class FreshAndStaleBoards(BoardCase):
                 self.assertIn(">unknown</span>", row)
                 self.assertIn(f"(was {was})", row)
                 self.assertNotIn('style="background:#1b7a3d"', row)
-        self.assertIn("has not been re-checked since 3 October 2026, 12:00 UTC", visible(page))
+        self.assertIn("since the board was last re-checked, at 3 October 2026, 12:00 UTC", visible(page))
 
     def test_the_rows_own_stamp_wins_over_the_publish_time(self):
         # Published long ago, re-evaluated an hour ago: fresh.
@@ -211,20 +211,36 @@ class FreshAndStaleBoards(BoardCase):
         self.assertIn("Evaluated: unknown.", page)
         self.assertNotIn('style="background:#1b7a3d"', visible(self.tbody(page)))
 
-    def test_a_fresh_page_carries_both_states_for_the_script(self):
+    def test_a_row_lapses_on_its_own_valid_until(self):
+        # Evaluated in the evening: the green row would turn amber at midnight,
+        # so it lapses then; the others hold for the day.
+        rows = [dict(r, evaluated_at="2026-10-03T18:17:00Z", valid_until="2026-10-04T18:17:00Z")
+                for r in ROWS]
+        rows[0]["valid_until"] = "2026-10-04T00:00:00Z"
+        self.write_standing(rows)
+        before = [visible(r) for r in self.body_rows(self.page(now="2026-10-03T23:59:59Z"))]
+        self.assertIn(">green</span>", before[0])
+        after_page = self.page(now="2026-10-04T00:00:01Z")
+        after = [visible(r) for r in self.body_rows(after_page)]
+        self.assertIn(">unknown</span>", after[0])
+        self.assertIn("(was green)", after[0])
+        self.assertNotIn('style="background:#1b7a3d"', after[0])
+        self.assertIn(">amber</span>", after[1], "a row still inside its valid_until keeps its colour")
+        self.assertIn("A row marked unknown", visible(after_page))
+
+    def test_a_current_page_carries_both_states_for_the_script(self):
         # The script can only swap colour for "unknown": both are in the page,
-        # the stale one hidden, and the board says when it was evaluated.
+        # the unknown one hidden, and each row says until when it is current.
         self.stamped("2026-10-03T12:00:00Z")
         page = self.page()
-        self.assertIn('id="board" data-evaluated-at="2026-10-03T12:00:00Z" data-fresh-hours="24"', page)
+        self.assertEqual(page.count('class="row-state" data-valid-until="2026-10-04T12:00:00Z"'), 4,
+                         "a row from an older core lapses a day after it was evaluated")
         self.assertEqual(page.count('class="stale" hidden="hidden"'), 4)
         self.assertIn('class="notice stale" hidden="hidden"', page)
         script = re.search(r"<script>(.*?)</script>", page, re.S).group(1)
-        self.assertIn(".hidden = true", script)
-        self.assertNotIn(".hidden = false;\n  for", script)
-        # It only ever reveals the stale elements and hides the live ones.
-        self.assertRegex(script, r"live\[i\]\.hidden = true")
-        self.assertRegex(script, r"gone\[j\]\.hidden = false")
+        # It only ever hides a colour and reveals "unknown" and the notice.
+        self.assertEqual(re.findall(r"\.hidden = (\w+)", script), ["true", "false", "false"])
+        self.assertIn('querySelector(".live").hidden = true', script)
 
 
 class MissingStandingSaysNoData(BoardCase):

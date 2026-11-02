@@ -181,6 +181,7 @@ class ReevaluateBetweenPublishes(unittest.TestCase):
                 row, rows = self.row(out)
                 self.assertEqual(row["state"], state)
                 self.assertEqual({r["evaluated_at"] for r in rows}, {now})
+                self.assertTrue(all(r["valid_until"] > now for r in rows))
                 self.assertEqual(result["evaluated_at"], now)
                 self.assertEqual(schema_validate(_schema("standing"), rows, _schema("standing")), [])
 
@@ -215,6 +216,40 @@ class ReevaluateBetweenPublishes(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()) as buf:
             code = bundle.main(["last-commit", "--receipts", str(receipts)])
         self.assertEqual((code, buf.getvalue().strip()), (0, "fedcba9"))
+
+    def test_a_broken_receipt_fails_rather_than_falling_back(self):
+        receipts = self.tmp / "receipts"
+        shutil.copytree(self.published / "receipts", receipts)
+        (receipts / "2026-10-09T000000Z-broken.md").write_text("no frontmatter\n", encoding="utf-8")
+        with self.assertRaises(ValueError):
+            bundle.latest_receipt(receipts)
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(bundle.main(["last-commit", "--receipts", str(receipts)]), 1)
+        self.assertIn("2026-10-09T000000Z-broken.md", err.getvalue())
+
+    def test_a_row_lapses_at_the_midnight_it_would_change(self):
+        # Evaluated the evening before the amber window opens (deadline
+        # 2026-11-01, warning 7 days: amber from 2026-10-25). The green is good
+        # only until midnight, not for 24 hours.
+        out = self.tmp / "out-eve"
+        bundle.reevaluate(self.src, self.published / "receipts", out, "2026-10-24T18:17:00Z")
+        row, _ = self.row(out)
+        self.assertEqual((row["state"], row["valid_until"]), ("green", "2026-10-25T00:00:00Z"))
+        # The minutes row cannot change without a publish: a full day.
+        minutes, _ = self.row(out, "demo-minutes-timely")
+        self.assertEqual(minutes["valid_until"], "2026-10-25T18:17:00Z")
+
+    def test_a_row_that_holds_through_midnight_gets_the_full_day(self):
+        out = self.tmp / "out-mid"
+        bundle.reevaluate(self.src, self.published / "receipts", out, "2026-10-20T06:17:00Z")
+        row, _ = self.row(out)
+        self.assertEqual((row["state"], row["valid_until"]), ("green", "2026-10-21T06:17:00Z"))
+
+    def test_the_due_date_lapses_into_red_at_midnight(self):
+        out = self.tmp / "out-due"
+        bundle.reevaluate(self.src, self.published / "receipts", out, "2026-11-01T12:17:00Z")
+        row, _ = self.row(out)
+        self.assertEqual((row["state"], row["valid_until"]), ("amber", "2026-11-02T00:00:00Z"))
 
     def test_last_commit_with_no_receipts_fails(self):
         empty = self.tmp / "empty"

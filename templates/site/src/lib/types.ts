@@ -34,8 +34,9 @@ export interface History {
   breaches: number;
 }
 
-// One standing row (schema/standing.schema.json). `history` and `evaluated_at`
-// are optional until the release after they landed: an older vault omits them.
+// One standing row (schema/standing.schema.json). `history`, `evaluated_at` and
+// `valid_until` are optional until the release after they landed: an older
+// vault omits them.
 export interface Row {
   id: string;
   state: State;
@@ -45,6 +46,7 @@ export interface Row {
   gap: number | null;
   history?: History | null;
   evaluated_at?: string;
+  valid_until?: string;
 }
 
 // The receipt fields the site reads (lib/published.mjs parseReceipt).

@@ -1,9 +1,10 @@
 // How current the board is. A standing row is true only as of the instant it was
 // evaluated: with nothing new published, an amber still turns red the day its
-// deadline passes. The vault re-evaluates four times a day; a row evaluated more
-// than FRESH_HOURS ago is shown as "unknown", never as the colour it last had.
-// The same limit as FRESH_HOURS in the vault's core/evaluate.py
-// (core/schema/README.md, "standing.schema.json").
+// deadline passes. Each row says until when it stays current (valid_until: the
+// next UTC midnight if it would change then, otherwise a day after it was
+// evaluated). Past that, the board shows it as "unknown", never as the colour it
+// last had. FRESH_HOURS is the vault core's limit (core/evaluate.py), used here
+// only for rows from an older core that carry no valid_until.
 
 export const FRESH_HOURS = 24;
 
@@ -31,15 +32,28 @@ export function buildNow() {
   return pinned ? Date.parse(pinned) : Date.now();
 }
 
-// True when the board was evaluated more than FRESH_HOURS before `now`, or when
-// nothing says when it was evaluated.
+// When a row stops being current, as an ISO string, or null if nothing says: its
+// own valid_until, or for an older core's row, FRESH_HOURS after the board was
+// evaluated.
 /**
+ * @param {{ valid_until?: string }} row
  * @param {string | null} evaluated
+ * @returns {string | null}
+ */
+export function rowLapse(row, evaluated) {
+  if (row.valid_until && !isNaN(Date.parse(row.valid_until))) return row.valid_until;
+  const at = evaluated ? Date.parse(evaluated) : NaN;
+  return isNaN(at) ? null : new Date(at + FRESH_HOURS * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+// True when `now` is past the row's lapse, or when nothing says when it lapses.
+/**
+ * @param {string | null} lapse
  * @param {number} now  milliseconds since the epoch
  */
-export function isStale(evaluated, now) {
-  const at = evaluated ? Date.parse(evaluated) : NaN;
-  return isNaN(at) || now - at > FRESH_HOURS * 3600 * 1000;
+export function isStale(lapse, now) {
+  const at = lapse ? Date.parse(lapse) : NaN;
+  return isNaN(at) || now > at;
 }
 
 // "1 November 2026, 06:17 UTC"

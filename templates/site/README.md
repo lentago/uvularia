@@ -96,9 +96,10 @@ satisfies it and the server-side time it went public.
 The board shows two times at the top. **Last published** is when your vault last
 published a record. **Evaluated** is when the board was last judged: your vault
 re-checks it four times a day, as well as on every publish, because a row can change
-with nothing new published (an amber turns red the day its deadline passes). A row
-evaluated more than **24 hours** ago is shown as **unknown**, with the colour it last
-had in brackets, never as that colour. The site checks this when it builds, and a
+with nothing new published (an amber turns red the day its deadline passes). Each
+row says until when it stays current: the next UTC midnight if it would change
+then, otherwise **24 hours** after it was evaluated. A row past that is shown as
+**unknown**, with the colour it last had in brackets, never as that colour. The site checks this when it builds, and a
 few lines of script check it again in the reader's browser, so a page that stops
 being rebuilt still goes to unknown on its own. If your board shows unknown, the
 vault's **re-evaluate** workflow has stopped: the vault's watch issue says how to

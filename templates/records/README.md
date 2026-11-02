@@ -80,12 +80,14 @@ amber still turns red the day its deadline passes, so the
 [`re-evaluate`](.github/workflows/re-evaluate.yml) workflow re-judges the board four
 times a day against what you last published and rewrites `standing.json` and this
 page. It writes no receipt: receipts record what was published, and the board is
-worked out from them. A board not re-checked for **24 hours** shows every row as
-**unknown**, with the colour it last had in brackets, and says since when. The
-page checks this when it is written, and the inline script checks it again against
-the reader's clock, so a page left behind by a stopped schedule still goes to
-unknown. The script can only hide a colour, never show one. Section 6 says how you
-hear about it.
+worked out from them. Each row says until when it stays current: the next UTC
+midnight if it would change then, otherwise **24 hours** after it was evaluated.
+A row past that shows as **unknown**, with the colour it last had in brackets,
+until the next run re-checks it, and the page says when the board was last
+checked. The page checks this when it is written, and the inline script checks it
+again against the reader's clock, so a page left behind by a stopped schedule
+still goes to unknown. The script can only hide a colour, never show one. Section
+6 says how you hear about it.
 
 > **Heads up — keep the deadlines that matter on a calendar too.** The board tells
 > you what this vault holds and when it was posted. It cannot see whether a filing
@@ -338,9 +340,8 @@ Actions → Variables** and add:
 
 > **Heads up — the watch never closes on missing data.** An issue closes only when
 > the data shows the problem is gone. If the board shows *no data* for an
-> obligation, or a file can't be read, the issue stays open. A green on a board
-> that has not been re-checked within the day is not current, so it closes nothing
-> either. If the published files or the Ask box can't be reached at all, the run
+> obligation, or a file can't be read, the issue stays open. A green row that is
+> past its `valid_until` is not current, so it closes nothing either. If the published files or the Ask box can't be reached at all, the run
 > fails, and GitHub emails you about the failed run.
 
 > **Heads up — GitHub pauses schedules on quiet repositories.** On a public

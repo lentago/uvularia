@@ -19,7 +19,7 @@
 // never touches the network.
 
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdtempSync, readFileSync, rmSync, existsSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, existsSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
@@ -117,8 +117,8 @@ expect("board says when it was evaluated", good.includes('Evaluated <time dateti
 expect("board says when it was last published", /Last published <time datetime="2026-10-01T14:03:11Z">/.test(good));
 expect("a fresh board shows no visible unknown row", !tbody(visible(good)).includes(">unknown</span>"));
 expect("a fresh board carries the stale variant, hidden, for the script", (tbody(good).match(/>unknown<\/span>/g) || []).length === 4);
-expect("the board carries its evaluated_at and limit for the script",
-  /id="board"[^>]*data-evaluated-at="2026-10-01T14:03:11Z"/.test(good) && /data-fresh-hours="24"/.test(good));
+expect("each row carries its valid_until for the script",
+  (good.match(/class="row-state" data-valid-until="2026-10-02T14:03:11Z"/g) || []).length === 4);
 expect("board links the satisfying record", good.includes("records/2026-09-16-board-minutes/"));
 expect("board says when data was last fetched", /data last fetched/i.test(good));
 
@@ -177,9 +177,28 @@ console.log("\n# building a day and a second after the board was evaluated");
   expect("a stale board shows NO visible green badge", !shown.includes(GREEN_SWATCH));
   expect('every row reads "unknown" (4 rows)', (shown.match(/>unknown<\/span>/g) || []).length === 4);
   expect("each row keeps its last colour in words", ["green", "amber", "red", "no data"].every((w) => shown.includes(`(was ${w})`)));
-  expect("the page says when it was last re-checked", visible(stale).includes("has not been re-checked since"));
+  expect("the page says when it was last re-checked", visible(stale).includes("since the board was last re-checked, at"));
   const fresh = build(GOOD, { now: "2026-10-02T14:03:11Z" });
-  expect("exactly a day later is still current", tbody(visible(fresh)).includes(GREEN_SWATCH));
+  expect("exactly at valid_until is still current", tbody(visible(fresh)).includes(GREEN_SWATCH));
+}
+
+// --- 6. one row lapses at midnight, the others hold ---------------------------
+console.log("\n# building with one row that changes at the next midnight");
+{
+  const rows = JSON.parse(readFileSync(join(GOOD, "standing.json"), "utf8"));
+  rows[0].valid_until = "2026-10-02T00:00:00Z";        // the green row
+  const tmp = mkdtempSync(join(tmpdir(), "uvularia-lapse-"));
+  try {
+    cpSync(GOOD, tmp, { recursive: true });
+    writeFileSync(join(tmp, "standing.json"), JSON.stringify(rows));
+    const page = build(tmp, { now: "2026-10-02T00:00:01Z" });
+    const shown = tbody(visible(page));
+    expect("the lapsed green row reads unknown", shown.includes("(was green)") && !shown.includes(GREEN_SWATCH));
+    expect("the rows still inside valid_until keep their colours", shown.includes(">amber</span>") && shown.includes(">red</span>"));
+    expect("the notice says a row may have changed", visible(page).includes("A row marked unknown may have changed"));
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
 // --- 4. a malformed standing.json: the build still stops ---------------------

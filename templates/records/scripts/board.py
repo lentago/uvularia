@@ -28,14 +28,15 @@ words that the board has no data, with no rows. A ``no-data`` row says "no
 data". On any bad input the script still writes a page and exits 0; it never
 raises.
 
-**Never a stale green.** A row is true only as of when it was evaluated. A board
-evaluated more than ``FRESH_HOURS`` (24) hours before the page is written shows
-every row as "unknown", with the colour it last had in brackets. A page can also
-go stale after it is written, if the schedule stops, so the page carries one
-small inline script that makes the same check against the reader's clock and
-switches the rows to "unknown" when the limit has passed. The script only ever
-hides colours; it never shows one the page did not already show. Without
-JavaScript the page still reads correctly and says when it was evaluated.
+**Never a stale green.** A row is true only as of when it was evaluated, and
+each row says until when it stays current (``valid_until``: the next UTC midnight
+if it would change then, otherwise a day after it was evaluated). A row past that
+instant when the page is written shows as "unknown", with the colour it last had
+in brackets. A page can also go stale after it is written, if the schedule stops,
+so the page carries one small inline script that makes the same check against
+the reader's clock, row by row. The script only ever hides colours; it never
+shows one the page did not already show. Without JavaScript the page still reads
+correctly and says when it was evaluated.
 
 The page has no external files. Its CSS and its one script are inline, it fits a
 phone screen, and every state is a word as well as a colour.
@@ -75,9 +76,10 @@ STATES = {
     "no-data": ("no data", "#595959", "nothing to judge yet; this is not a pass"),
 }
 
-# Not a standing state: what a row shows when the board has not been evaluated
-# within FRESH_HOURS. It hides the last colour rather than vouch for it.
-UNKNOWN = ("unknown", "#595959", "not re-checked in the last day; this is not a pass")
+# Not a standing state: what a row shows once it is past its valid_until (or,
+# for an older core, a day after the board was evaluated). It hides the last
+# colour rather than vouch for it.
+UNKNOWN = ("unknown", "#595959", "may have changed since the board was last re-checked; this is not a pass")
 FRESH = timedelta(hours=evaluate.FRESH_HOURS)
 
 
@@ -186,9 +188,20 @@ def evaluated_instant(rows, bundle, receipt):
     return receipt[2] if receipt else None
 
 
-def is_stale(evaluated, now):
-    """True when the board was evaluated more than FRESH ago, or nobody knows when."""
-    return evaluated is None or now - evaluated > FRESH
+def row_lapse(row, evaluated):
+    """When ``row`` stops being current, or None if nothing says.
+
+    Its own ``valid_until``; for a row from a core that predates the field, a day
+    after the board was evaluated (``evaluated_instant``)."""
+    lapse = _when(row.get("valid_until"))
+    if lapse:
+        return lapse
+    return evaluated + FRESH if evaluated else None
+
+
+def is_stale(lapse, now):
+    """True when the row's lapse has passed, or nobody knows when it lapses."""
+    return lapse is None or now > lapse
 
 
 def read_obligation_titles(vault):
@@ -243,17 +256,20 @@ def _words(when):
     return f"{when.day} {when:%B %Y, %H:%M} UTC"
 
 
-def state_cell(state, stale):
-    """The row's state, and the "unknown" it turns into when the board is stale.
+def state_cell(state, lapse, now):
+    """The row's state, and the "unknown" it turns into once the row lapses.
 
-    Both are in the page; ``hidden`` picks one. A page written stale shows only
-    "unknown". A fresh page shows the colour, and the inline script swaps to
-    "unknown" if the reader opens it after the limit."""
+    Both are in the page; ``hidden`` picks one. A row already lapsed when the page
+    is written shows only "unknown". A current row shows its colour, and the
+    inline script swaps it for "unknown" if the reader opens the page after
+    ``data-valid-until``."""
+    stale = is_stale(lapse, now)
     word = STATES.get(state, STATES["no-data"])[0]
     live = el("span", state_badge(state), class_="live", hidden="hidden" if stale else None)
     gone = el("span", state_badge("unknown"), " ", el("span", f"(was {word})", class_="muted"),
               class_="stale", hidden=None if stale else "hidden")
-    return join(live, gone)
+    return el("td", live, gone, class_="row-state",
+              data_valid_until=evaluate.format_instant(lapse) if lapse else "")
 
 
 def record_link(record_id, corpus_by_id, repo):
@@ -267,7 +283,7 @@ def record_link(record_id, corpus_by_id, repo):
     return el("a", text, href=url) if url else el("code", record_id)
 
 
-def board_section(rows, titles, corpus_by_id, repo, evaluated=None, stale=True):
+def board_section(rows, titles, corpus_by_id, repo, evaluated=None, now=None):
     if rows is None:
         return el("section",
                   el("h2", "Is it posted?"),
@@ -279,20 +295,23 @@ def board_section(rows, titles, corpus_by_id, repo, evaluated=None, stale=True):
                   el("h2", "Is it posted?"),
                   el("p", "No posting obligations are declared in this vault yet.",
                      class_="notice"))
+    now = now or datetime.now(timezone.utc)
+    lapses = [row_lapse(r, evaluated) for r in rows]
     body = [el("tr",
                el("th", titles.get(r["id"]) or r["id"], scope="row"),
-               el("td", state_cell(r["state"], stale)),
+               state_cell(r["state"], lapse, now),
                el("td", r["deadline"] or el("span", "none", class_="muted")),
                el("td", record_link(r["satisfied_by"], corpus_by_id, repo)))
-            for r in rows]
+            for r, lapse in zip(rows, lapses)]
     legend = [el("li", state_badge(s), " ", meaning) for s, (_, _, meaning) in STATES.items()]
     legend.append(el("li", state_badge("unknown"), " ", UNKNOWN[2]))
     since = _words(evaluated) if evaluated else "an unknown time"
+    any_stale = any(is_stale(lapse, now) for lapse in lapses)
     warning = el("p", state_badge("unknown"),
-                 f" This board has not been re-checked since {since}, more than a day "
-                 "ago, so every row shows unknown. The colour in brackets is what the row "
-                 "showed then; it may have changed since. Nothing here is shown as met.",
-                 class_="notice stale", hidden=None if stale else "hidden")
+                 " A row marked unknown may have changed since the board was last "
+                 f"re-checked, at {since}. The colour in brackets is what it showed then. "
+                 "Nothing marked unknown is shown as met.",
+                 class_="notice stale", hidden=None if any_stale else "hidden")
     return el("section",
               el("h2", "Is it posted?"),
               warning,
@@ -304,9 +323,7 @@ def board_section(rows, titles, corpus_by_id, repo, evaluated=None, stale=True):
                     el("tbody", *body)),
                  class_="scroll"),
               el("ul", *legend, class_="legend"),
-              id="board",
-              data_evaluated_at=evaluate.format_instant(evaluated) if evaluated else "",
-              data_fresh_hours=evaluate.FRESH_HOURS)
+              id="board")
 
 
 def recent_section(corpus, repo):
@@ -347,19 +364,22 @@ def evaluated_line(evaluated):
               "and on every publish.")
 
 
-# Runs once, on load. If the board was evaluated more than data-fresh-hours ago by
-# the reader's clock (or the page does not say when), it hides every colour and
-# shows "unknown". It never does the reverse.
+# Runs once, on load. Each row past its data-valid-until by the reader's clock (or
+# with no readable instant) has its colour hidden and "unknown" shown, and the
+# notice appears. It never does the reverse.
 SCRIPT = """
 (function () {
   var board = document.getElementById("board");
   if (!board) return;
-  var at = Date.parse(board.getAttribute("data-evaluated-at") || "");
-  var limit = Number(board.getAttribute("data-fresh-hours")) * 3600000;
-  if (!isNaN(at) && limit > 0 && Date.now() - at <= limit) return;
-  var live = board.querySelectorAll(".live"), gone = board.querySelectorAll(".stale");
-  for (var i = 0; i < live.length; i++) live[i].hidden = true;
-  for (var j = 0; j < gone.length; j++) gone[j].hidden = false;
+  var cells = board.querySelectorAll("[data-valid-until]"), lapsed = false;
+  for (var i = 0; i < cells.length; i++) {
+    var until = Date.parse(cells[i].getAttribute("data-valid-until") || "");
+    if (!isNaN(until) && Date.now() <= until) continue;
+    lapsed = true;
+    cells[i].querySelector(".live").hidden = true;
+    cells[i].querySelector(".stale").hidden = false;
+  }
+  if (lapsed) board.querySelector(".notice.stale").hidden = false;
 })();
 """
 
@@ -390,7 +410,6 @@ footer { margin-top: 2rem; font-size: 0.9rem; color: #595959; }
 
 def render_page(title, rows, titles, corpus, receipt, repo, evaluated=None, now=None):
     corpus_by_id = {e["doc_id"]: e for e in corpus or []}
-    stale = is_stale(evaluated, now or datetime.now(timezone.utc))
     footer = el("footer",
                 "Times are server-side times in UTC. The data behind this page: ",
                 el("a", "standing.json", href="standing.json"), ", ",
@@ -408,7 +427,7 @@ def render_page(title, rows, titles, corpus, receipt, repo, evaluated=None, now=
               el("h1", title),
               published_line(receipt, repo),
               evaluated_line(evaluated),
-              board_section(rows, titles, corpus_by_id, repo, evaluated, stale),
+              board_section(rows, titles, corpus_by_id, repo, evaluated, now),
               recent_section(corpus, repo)),
            footer,
            el("script", Html(SCRIPT))),

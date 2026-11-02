@@ -244,8 +244,18 @@ class EvaluationTest(unittest.TestCase):
 
     def test_a_stale_green_does_not_close_an_obligation_issue(self):
         (f,) = watch.obligations(fx("standing-all-green.json")[:1],
-                                 {"obligation:annual-report"}, current=False)
+                                 {"obligation:annual-report"}, current=lambda row: False)
         self.assertEqual(f.status, watch.UNKNOWN)
+
+    def test_a_row_is_current_until_its_own_valid_until(self):
+        evaluated = datetime(2026, 10, 3, 18, 17, tzinfo=timezone.utc)
+        row = {"valid_until": "2026-10-04T00:00:00Z"}
+        self.assertTrue(watch.row_current(row, evaluated, datetime(2026, 10, 4, 0, 0, tzinfo=timezone.utc)))
+        self.assertFalse(watch.row_current(row, evaluated, datetime(2026, 10, 4, 0, 0, 1, tzinfo=timezone.utc)))
+        # An older core's row: a day after the board was evaluated.
+        self.assertTrue(watch.row_current({}, evaluated, datetime(2026, 10, 4, 18, 17, tzinfo=timezone.utc)))
+        self.assertFalse(watch.row_current({}, evaluated, datetime(2026, 10, 4, 18, 18, tzinfo=timezone.utc)))
+        self.assertFalse(watch.row_current({}, None, evaluated))
 
 
 # --------------------------------------------------------------------------- #

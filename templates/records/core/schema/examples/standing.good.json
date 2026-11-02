@@ -11,7 +11,8 @@
       "evaluated": 12,
       "breaches": 2
     },
-    "evaluated_at": "2026-09-14T06:17:42Z"
+    "evaluated_at": "2026-09-14T06:17:42Z",
+    "valid_until": "2026-09-15T00:00:00Z"
   },
   {
     "id": "minutes-within-30-days",
@@ -21,6 +22,7 @@
     "published_at": null,
     "gap": null,
     "history": null,
-    "evaluated_at": "2026-09-14T06:17:42Z"
+    "evaluated_at": "2026-09-14T06:17:42Z",
+    "valid_until": "2026-09-15T00:00:00Z"
   }
 ]

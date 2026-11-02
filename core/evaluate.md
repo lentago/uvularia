@@ -75,6 +75,10 @@ Each row is defined by [`standing.schema.json`](schema/standing.schema.json):
 - **`evaluated_at`** — the instant this row was judged at: `--now`, which is the
   publish run's server-side time on a publish and the run's own time on a
   scheduled re-evaluation. See "How current a row is", below.
+- **`valid_until`** — the instant after which the row must not be shown as
+  current: the next UTC midnight when the row's state, satisfying record or
+  deadline changes then with nothing new published, otherwise 24 hours after
+  `evaluated_at`. `gap` and `history` are as of `evaluated_at`.
 
 ## How current a row is
 
@@ -91,9 +95,14 @@ the board page; it writes no receipt, because receipts record what was published
 and standing is derived from them.
 
 Every state depends only on the UTC date, so a row evaluated today is right for
-the rest of today. The boards and the watcher allow a day: a row evaluated more
-than **24 hours** ago (`FRESH_HOURS`) shows as **unknown**, with the colour it last
-had and when, and the watcher opens an issue saying the schedule has stopped.
+the rest of today, and can change only at a UTC midnight. The evaluator looks one
+midnight ahead: if the row would read differently there (an amber turning red the
+day after its deadline, a green turning amber as the warning window opens), its
+`valid_until` is that midnight. Otherwise it is **24 hours** after `evaluated_at`
+(`FRESH_HOURS`). A row past its `valid_until` shows as **unknown**, with the colour
+it last had in brackets, until the next run re-checks it; the 00:17 UTC run is
+there for exactly that. A board not re-checked for 24 hours has every row unknown,
+and the watcher opens an issue saying the schedule has stopped.
 Keep important deadlines on a person's calendar as well. The board tells you what
 the vault holds; only the filing receipt from the agency proves a filing landed.
 
