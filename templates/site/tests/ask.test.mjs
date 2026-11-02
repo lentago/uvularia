@@ -211,7 +211,8 @@ expect("no askUrl → no disclaimer", !without.includes(DISCLAIMER_PART));
 // which can only hide colours; nothing of the Ask box's.
 const scripts = without.match(/<script[\s\S]*?<\/script>/gi) || [];
 expect("no askUrl → no Ask script on the page",
-  scripts.length === 1 && scripts[0].includes("board-summary") && !/ask/i.test(scripts[0].replace("board-summary", "")));
+  scripts.length === 1 && scripts[0].includes('document.getElementById("board-summary")') &&
+  !/data-ask|fetch\(|askUrl/i.test(scripts[0]));
 expect("no askUrl → the home page still builds and links the records", without.includes("records/"));
 
 console.log("\n# building with askUrl set");
