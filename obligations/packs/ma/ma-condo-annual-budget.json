@@ -6,5 +6,6 @@
   "subjects": ["budget", "annual-meeting"],
   "source": "M.G.L. c. 183A, § 10(b) — trustees shall manage common areas and common expenses, which requires preparation of an annual budget.",
   "disclaimer_ref": "policy.disclaimer",
+  "scope_note": "A 12-month reminder. The timing your declaration and the statute require follow your fiscal year, which this rule does not know.",
   "cadence": { "months": 12 }
 }
