@@ -144,8 +144,10 @@ class QuestionLogConfig(unittest.TestCase):
 
     @unittest.skipUnless((TERRAFORM / "main.tf").is_file(), "no terraform module beside src/")
     def test_terraform_sets_the_variable_the_function_reads(self):
-        # Only live lines count: a commented-out setting must not pass.
-        main = "\n".join(line for line in (TERRAFORM / "main.tf").read_text(encoding="utf-8").splitlines()
+        # Only live code counts: a commented-out setting must not pass, whether it
+        # is a `/* … */` block or a `#` / `//` line.
+        text = re.sub(r"/\*.*?\*/", "", (TERRAFORM / "main.tf").read_text(encoding="utf-8"), flags=re.S)
+        main = "\n".join(line for line in text.splitlines()
                          if not line.lstrip().startswith(("#", "//")))
         variables = (TERRAFORM / "variables.tf").read_text(encoding="utf-8")
         self.assertRegex(
