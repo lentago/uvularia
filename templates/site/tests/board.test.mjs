@@ -19,6 +19,7 @@
 // never touches the network.
 
 import { execFileSync } from "node:child_process";
+import vm from "node:vm";
 import { cpSync, mkdtempSync, readFileSync, rmSync, existsSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -180,6 +181,42 @@ console.log("\n# building a day and a second after the board was evaluated");
   expect("the page says when it was last re-checked", visible(stale).includes("since the board was last re-checked, at"));
   const fresh = build(GOOD, { now: "2026-10-02T14:03:11Z" });
   expect("exactly at valid_until is still current", tbody(visible(fresh)).includes(GREEN_SWATCH));
+}
+
+// Run a page's inline summary script against a minimal fake DOM at a given
+// clock, and report which half of the summary is left visible.
+function runSummaryScript(html, nowIso) {
+  const script = (html.match(/<script>([\s\S]*?)<\/script>/g) || [])
+    .map((s) => s.replace(/^<script>|<\/script>$/g, ""))
+    .find((s) => s.includes('getElementById("board-summary")'));
+  if (!script) return null;
+  const until = (html.match(/id="board-summary" data-valid-until="([^"]*)"/) || [])[1] ?? "";
+  const live = { hidden: false }, stale = { hidden: true };
+  const el = { getAttribute: () => until, querySelector: (q) => (q === ".live" ? live : stale) };
+  const RealDate = Date;
+  const FixedDate = class extends RealDate { static now() { return RealDate.parse(nowIso); } };
+  vm.runInNewContext(script, { document: { getElementById: (id) => (id === "board-summary" ? el : null) }, Date: FixedDate });
+  return live.hidden && !stale.hidden ? "stale" : !live.hidden && stale.hidden ? "live" : "both";
+}
+
+// --- the home page's one-line summary follows the same rule (uvularia#127) ---
+console.log("\n# the home page summary, current and lapsed");
+{
+  const HOME = join(ROOT, "dist", "index.html");
+  build(GOOD);
+  const current = visible(readFileSync(HOME, "utf8"));
+  expect("a current home page counts the colours", current.includes("1 green, 1 amber, 1 red, 1 no-data"));
+  expect("a current home page counts no unknown rows", !current.includes(" unknown"));
+  const page = readFileSync(HOME, "utf8");
+  expect("in the browser, the counts stay before the earliest valid_until",
+    runSummaryScript(page, "2026-10-02T14:03:11Z") === "live");
+  expect("in the browser, the counts give way to the pointer after it",
+    runSummaryScript(page, "2026-10-02T14:03:12Z") === "stale");
+  build(GOOD, { now: "2026-10-02T14:03:12Z" });
+  const lapsed = readFileSync(HOME, "utf8");
+  expect("a lapsed home page counts every row as unknown", visible(lapsed).includes("0 green, 0 amber, 0 red, 0 no-data, 4 unknown"));
+  expect("the summary carries the earliest valid_until for the browser check",
+    /id="board-summary" data-valid-until="2026-10-02T14:03:11Z"/.test(lapsed));
 }
 
 // --- 6. one row lapses at midnight, the others hold ---------------------------

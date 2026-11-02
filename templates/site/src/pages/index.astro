@@ -2,15 +2,32 @@
 import Base from "../layouts/Base.astro";
 import { config } from "../config";
 import { url } from "../lib/url.mjs";
-import { records, standing } from "../lib/published.mjs";
+import { records, standing, bundle } from "../lib/published.mjs";
+import { evaluatedAt, rowLapse, isStale, buildNow } from "../lib/fresh.mjs";
 import { askUrl } from "../lib/ask-config.mjs";
 import Ask from "../components/Ask.astro";
 import type { State } from "../lib/types";
 
 const recs = records();
 const rows = standing();
-const counts: Record<State, number> = { green: 0, amber: 0, red: 0, "no-data": 0 };
-for (const r of rows || []) counts[r.state] = (counts[r.state] || 0) + 1;
+
+// The same rule as the board (lib/fresh.mjs): a row past its valid_until is
+// counted as unknown, never as the colour it last had (uvularia#127).
+const evaluated = evaluatedAt(rows, bundle());
+const now = buildNow();
+const counts: Record<State | "unknown", number> = { green: 0, amber: 0, red: 0, "no-data": 0, unknown: 0 };
+const lapses: string[] = [];
+for (const r of rows || []) {
+  const lapse = rowLapse(r, evaluated);
+  if (isStale(lapse, now)) counts.unknown += 1;
+  else counts[r.state] = (counts[r.state] || 0) + 1;
+  if (lapse) lapses.push(lapse);
+}
+// The earliest instant any row lapses: past it, the browser shows the summary as
+// unknown too, so a page that stops being rebuilt does not keep its colours.
+const firstLapse = lapses.length ? lapses.reduce((a, b) => (Date.parse(a) <= Date.parse(b) ? a : b)) : "";
+const summary = `${counts.green} green, ${counts.amber} amber, ${counts.red} red, ${counts["no-data"]} no-data` +
+  (counts.unknown ? `, ${counts.unknown} unknown` : "");
 ---
 
 <Base>
@@ -28,14 +45,37 @@ for (const r of rows || []) counts[r.state] = (counts[r.state] || 0) + 1;
       <li><a href={url("announcements/")}>Announcements</a> as they are posted.</li>
       <li>
         <a href={url("board/")}>Is it posted?</a> —{" "}
-        {rows === null
-          ? "no data yet"
-          : `${counts.green} green, ${counts.amber} amber, ${counts.red} red, ${counts["no-data"]} no-data`}.
+        {rows === null ? (
+          "no data yet"
+        ) : (
+          <span id="board-summary" data-valid-until={firstLapse}>
+            <span class="live">{summary}</span>
+            <span class="stale" hidden>some rows may have changed since the board was last re-checked; see the board</span>
+          </span>
+        )}.
       </li>
     </ul>
   </div>
 
   {askUrl() && <Ask />}
+
+  {/* Once the earliest row lapses by the reader's clock, swap the counts for a
+      pointer to the board. It never does the reverse. */}
+  <script is:inline>
+    (function () {
+      var el = document.getElementById("board-summary");
+      if (!el) return;
+      var raw = el.getAttribute("data-valid-until") || "";
+      if (raw === "") return;            // no rows: nothing to lapse
+      var until = Date.parse(raw);
+      if (!isNaN(until) && Date.now() <= until) return;
+      el.querySelector(".live").hidden = true;
+      el.querySelector(".stale").hidden = false;
+    })();
+  </script>
+  <style is:global>
+    [hidden] { display: none !important; }
+  </style>
 
   <p class="muted">
     The board shows only what has been published. An empty board means nothing has
