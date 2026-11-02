@@ -172,3 +172,47 @@ class SchemaAcceptsAndRejects(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MissingHolidayYearIsNoData(unittest.TestCase):
+    """uvularia#116: a lead window that reaches a year the rule has no holiday
+    list for cannot be counted, so the row is no-data, never a possible green."""
+
+    RULE = {"id": "notice-48h", "title": "t", "pack": "test", "record_type": "notice",
+            "subjects": ["meetings"], "source": "test", "disclaimer_ref": "policy.disclaimer",
+            "lead": {"hours": 48, "weekdays_only": True,
+                     "exclude_dates": ["2027-01-01"], "calendar_years": [2026, 2027]}}
+
+    def judge(self, meeting, posted):
+        record = {"id": f"{meeting}-notice", "type": "notice", "status": "approved",
+                  "effective": meeting, "subjects": ["meetings"]}
+        pubs = evaluate.publish_index([{"published_at": posted, "records": {"added": [record["id"]]}}])
+        now = evaluate.parse_datetime(meeting)
+        row = evaluate.evaluate_obligation(self.RULE, [record], pubs, now, 7)
+        history = evaluate.obligation_history(self.RULE, [record], pubs, now, 730)
+        return row, history
+
+    def test_a_covered_year_is_judged(self):
+        row, history = self.judge("2027-01-05", "2026-12-30T08:00:00Z")
+        self.assertEqual(row["state"], "green")
+        self.assertIsNotNone(history)
+
+    def test_a_window_in_an_uncovered_year_is_no_data(self):
+        row, history = self.judge("2028-03-08", "2028-03-01T09:00:00Z")
+        self.assertEqual((row["state"], row["deadline"], row["satisfied_by"]), ("no-data", None, None))
+        self.assertIsNone(history, "an uncovered window is not counted in the track record")
+
+    def test_a_window_that_crosses_into_an_uncovered_year_is_no_data(self):
+        # A Monday 3 January 2028 meeting: the 48 hours reach back into 2027 and
+        # touch 2028 too, and 2028 has no list.
+        row, _ = self.judge("2028-01-03", "2027-12-28T09:00:00Z")
+        self.assertEqual(row["state"], "no-data")
+
+    def test_a_rule_without_calendar_years_is_unchanged(self):
+        rule = {**self.RULE, "lead": {k: v for k, v in self.RULE["lead"].items() if k != "calendar_years"}}
+        record = {"id": "2028-03-08-notice", "type": "notice", "status": "approved",
+                  "effective": "2028-03-08", "subjects": ["meetings"]}
+        pubs = evaluate.publish_index([{"published_at": "2028-03-01T09:00:00Z",
+                                        "records": {"added": [record["id"]]}}])
+        row = evaluate.evaluate_obligation(rule, [record], pubs, evaluate.parse_datetime("2028-03-08"), 7)
+        self.assertEqual(row["state"], "green")
