@@ -20,6 +20,7 @@ export interface Entry {
 // The corpus bundle (schema/bundle.schema.json), as far as the site reads it.
 export interface Bundle {
   digest: string;
+  published_at?: string;
   records: Entry[];
 }
 
@@ -33,8 +34,9 @@ export interface History {
   breaches: number;
 }
 
-// One standing row (schema/standing.schema.json). `history` is optional until
-// the release after it landed: an older vault omits it.
+// One standing row (schema/standing.schema.json). `history`, `evaluated_at` and
+// `valid_until` are optional until the release after they landed: an older
+// vault omits them.
 export interface Row {
   id: string;
   state: State;
@@ -43,6 +45,8 @@ export interface Row {
   published_at: string | null;
   gap: number | null;
   history?: History | null;
+  evaluated_at?: string;
+  valid_until?: string;
 }
 
 // The receipt fields the site reads (lib/published.mjs parseReceipt).

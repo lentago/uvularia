@@ -10,7 +10,9 @@
       "window_days": 730,
       "evaluated": 12,
       "breaches": 2
-    }
+    },
+    "evaluated_at": "2026-10-01T14:03:11Z",
+    "valid_until": "2026-10-02T14:03:11Z"
   },
   {
     "id": "minutes-within-30-days",
@@ -23,7 +25,9 @@
       "window_days": 730,
       "evaluated": 8,
       "breaches": 0
-    }
+    },
+    "evaluated_at": "2026-10-01T14:03:11Z",
+    "valid_until": "2026-10-02T14:03:11Z"
   },
   {
     "id": "annual-report-filed",
@@ -32,7 +36,9 @@
     "deadline": "2026-07-01",
     "published_at": null,
     "gap": 94,
-    "history": null
+    "history": null,
+    "evaluated_at": "2026-10-01T14:03:11Z",
+    "valid_until": "2026-10-02T14:03:11Z"
   },
   {
     "id": "conflict-of-interest-annual",
@@ -41,6 +47,8 @@
     "deadline": null,
     "published_at": null,
     "gap": null,
-    "history": null
+    "history": null,
+    "evaluated_at": "2026-10-01T14:03:11Z",
+    "valid_until": "2026-10-02T14:03:11Z"
   }
 ]

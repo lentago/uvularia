@@ -2,7 +2,8 @@
 import Base from "../../layouts/Base.astro";
 import StateBadge from "../../components/StateBadge.astro";
 import { url } from "../../lib/url.mjs";
-import { standing, records, meta } from "../../lib/published.mjs";
+import { standing, records, meta, bundle } from "../../lib/published.mjs";
+import { evaluatedAt, rowLapse, isStale, buildNow, words } from "../../lib/fresh.mjs";
 import type { History } from "../../lib/types";
 
 // THE RULE (carried over from drosera's status page): a missing or unreadable
@@ -13,6 +14,19 @@ import type { History } from "../../lib/types";
 const rows = standing();
 const m = meta();
 const corpusIds = new Set(records().map((r) => r.doc_id));
+
+// A row is true only as of when it was evaluated (lib/fresh.mjs). Judged here at
+// build time, and again in the reader's browser by the script at the bottom, so
+// a page that stops being rebuilt still goes to "unknown" on its own.
+const b = bundle();
+const publishedAt = b?.published_at ?? null;
+const evaluated = evaluatedAt(rows, b);
+const now = buildNow();
+const shown = (rows ?? []).map((r) => {
+  const lapse = rowLapse(r, evaluated);
+  return { row: r, lapse, stale: isStale(lapse, now) };
+});
+const anyStale = shown.some((s) => s.stale);
 
 function gapPhrase(gap: number | null | undefined) {
   if (gap === null || gap === undefined) return "—";
@@ -41,6 +55,13 @@ function historyPhrase(h: History | null | undefined) {
     state alone cannot show. "No history yet" means there is no past deadline to
     summarise — not a clean record.
   </p>
+  <p>
+    Last published {publishedAt ? <time datetime={publishedAt}>{words(publishedAt)}</time> : "— unknown"}.
+    Evaluated {evaluated ? <time datetime={evaluated}>{words(evaluated)}</time> : "— unknown"}.
+    Each row is true as of when it was evaluated. The board is re-checked four
+    times a day and on every publish. A row that may have changed since then shows
+    as unknown until it is re-checked.
+  </p>
 
   {
     rows === null ? (
@@ -57,7 +78,13 @@ function historyPhrase(h: History | null | undefined) {
     ) : rows.length === 0 ? (
       <p class="notice">No obligations are declared in the vault yet.</p>
     ) : (
-      <>
+      <div id="board">
+        <p class="notice stale" hidden={!anyStale}>
+          <StateBadge state="unknown" /> A row marked unknown may have changed since
+          the board was last re-checked, at
+          {evaluated ? ` ${words(evaluated)}` : " an unknown time"}. The colour in
+          brackets is what it showed then. Nothing marked unknown is shown as met.
+        </p>
         <table>
           <thead>
             <tr>
@@ -71,10 +98,15 @@ function historyPhrase(h: History | null | undefined) {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {shown.map(({ row: r, lapse, stale }) => (
               <tr>
                 <td><code>{r.id}</code></td>
-                <td><StateBadge state={r.state} /></td>
+                <td class="row-state" data-valid-until={lapse ?? ""}>
+                  <span class="live" hidden={stale}><StateBadge state={r.state} /></span>
+                  <span class="stale" hidden={!stale}>
+                    <StateBadge state="unknown" /> <span class="muted">(was {r.state === "no-data" ? "no data" : r.state})</span>
+                  </span>
+                </td>
                 <td>
                   {r.satisfied_by ? (
                     corpusIds.has(r.satisfied_by) ? (
@@ -99,8 +131,31 @@ function historyPhrase(h: History | null | undefined) {
         <p class="muted" style="margin-top:1rem">
           Data last fetched {m.fetched_at ? <time datetime={m.fetched_at}>{m.fetched_at}</time> : "— unknown"}.
           “No data” is not a pass — it means there is nothing to show for that row.
+          “Unknown” is not a pass either — it means the row may have changed since the
+          board was last re-checked.
         </p>
-      </>
+      </div>
     )
   }
+  {/* Runs once, on load. Each row past its data-valid-until by the reader's
+      clock (or with no readable instant) has its colour hidden and "unknown"
+      shown, and the notice appears. It never does the reverse. */}
+  <script is:inline>
+    (function () {
+      var board = document.getElementById("board");
+      if (!board) return;
+      var cells = board.querySelectorAll("[data-valid-until]"), lapsed = false;
+      for (var i = 0; i < cells.length; i++) {
+        var until = Date.parse(cells[i].getAttribute("data-valid-until") || "");
+        if (!isNaN(until) && Date.now() <= until) continue;
+        lapsed = true;
+        cells[i].querySelector(".live").hidden = true;
+        cells[i].querySelector(".stale").hidden = false;
+      }
+      if (lapsed) board.querySelector(".notice.stale").hidden = false;
+    })();
+  </script>
+  <style is:global>
+    [hidden] { display: none !important; }
+  </style>
 </Base>

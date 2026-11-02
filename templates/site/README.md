@@ -8,8 +8,9 @@ GitHub Pages.
 It builds **only** from what your records vault has published — a corpus file, a
 standing file, a feed, and a receipt served on the vault's `published` branch. It
 never reads the vault's working files, so the site can never show a fact the vault
-has not published. There is no database and no server. The only JavaScript in your
-readers' browsers is the optional Ask box (section 4), and the site works without it.
+has not published. There is no database and no server. The JavaScript in your
+readers' browsers is the optional Ask box (section 4) and a few lines on the board
+that can only hide colours (section 3); the site works without either.
 
 You edit exactly one file: [`site.config.ts`](site.config.ts). It holds your values
 and nothing else. What each setting means is documented in
@@ -91,6 +92,18 @@ satisfies it and the server-side time it went public.
 > means "nothing published yet"** — it does **not** mean everything is in order. A
 > missing standing file renders every row as **"no data"**, never a green. That is
 > deliberate: the board never claims compliance it cannot show.
+
+The board shows two times at the top. **Last published** is when your vault last
+published a record. **Evaluated** is when the board was last judged: your vault
+re-checks it four times a day, as well as on every publish, because a row can change
+with nothing new published (an amber turns red the day its deadline passes). Each
+row says until when it stays current: the next UTC midnight if it would change
+then, otherwise **24 hours** after it was evaluated. A row past that is shown as
+**unknown**, with the colour it last had in brackets, never as that colour. The site checks this when it builds, and a
+few lines of script check it again in the reader's browser, so a page that stops
+being rebuilt still goes to unknown on its own. If your board shows unknown, the
+vault's **re-evaluate** workflow has stopped: the vault's watch issue says how to
+restart it.
 
 ---
 

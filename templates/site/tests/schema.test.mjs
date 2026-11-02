@@ -39,15 +39,15 @@ expect(
 
 // The previous release's standing (rows without history) still validates — a
 // site newer than its vault's core must build — and the build step can tell it
-// is older: history is the optional field it leaves out. The current good file
+// is older: history, evaluated_at and valid_until are the optional fields it leaves out. The current good file
 // leaves nothing out.
 expect(
   "previous-release standing.json (no history) validates",
   validate(standingSchema, fixture("previous", "standing.json"), standingSchema).length === 0,
 );
 expect(
-  "previous-release standing.json is seen as older: missing optional field 'history'",
-  JSON.stringify(missingOptionalFields(standingSchema, fixture("previous", "standing.json"))) === '["history"]',
+  "previous-release standing.json is seen as older: missing optional fields 'history', 'evaluated_at' and 'valid_until'",
+  JSON.stringify(missingOptionalFields(standingSchema, fixture("previous", "standing.json"))) === '["evaluated_at","valid_until","history"]',
 );
 expect(
   "current standing.json is not seen as older",

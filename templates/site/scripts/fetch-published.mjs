@@ -169,7 +169,9 @@ export async function fetchPublished({ baseUrl, outDir }) {
       log(
         `standing.json has no ${missing.join(", ")} on some rows — the vault's core is ` +
           `behind this site. The board shows the fallback for those columns (for history, ` +
-          `"no history yet") until the vault updates core/ and publishes again. ` +
+          `"no history yet"; for evaluated_at, the publish time; for valid_until, a day ` +
+          `after that) until the vault updates ` +
+          `core/ and publishes again. ` +
           `This is not an error.`,
       );
     }
