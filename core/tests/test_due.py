@@ -80,6 +80,19 @@ class FixedDateEveryYear(unittest.TestCase):
                     "2027-10-28T12:00:00Z")
         self.assertEqual((row["state"], row["satisfied_by"]), ("green", "2027-10-01-annual-report"))
 
+    def test_a_skipped_year_is_settled_first(self):
+        # 2025 on time, nothing for 2026, one filing on 2027-10-15. It settles the
+        # skipped 2026 date (late), not 2027: one filing cannot be both, and the
+        # board does not guess the kinder reading.
+        postings = [ON_TIME_2025, ("2027-10-15-annual-report", "2027-10-15T10:00:00Z")]
+        row = judge(postings, "2027-10-20T12:00:00Z")
+        self.assertEqual((row["state"], row["deadline"], row["published_at"]),
+                         ("red", "2026-11-01", "2027-10-15T10:00:00Z"))
+        # A second filing settles 2027.
+        row = judge(postings + [("2027-10-25-annual-report", "2027-10-25T10:00:00Z")],
+                    "2027-10-28T12:00:00Z")
+        self.assertEqual((row["state"], row["satisfied_by"]), ("green", "2027-10-25-annual-report"))
+
     def test_an_amendment_in_the_same_year_does_not_count_for_the_next(self):
         amended = [ON_TIME_2025, ("2025-10-28-annual-report", "2025-10-28T12:00:00Z")]
         row = judge(amended, "2026-11-02T00:00:00Z")

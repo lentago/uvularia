@@ -176,7 +176,8 @@ the start of that day, UTC).
   November 1). The row is about the next due date on or after today. Each due
   date needs its own posting, published (UTC date) after the previous due date
   and on or before this one; a second posting in the same year is an amendment
-  and counts for nothing more. Then:
+  and counts for nothing more. Due dates are settled oldest first, one posting
+  each. Then:
   - this year's due date is met → **green**, with that posting;
   - not yet, and last year's was met on time → **green**, carrying last year's
     posting, and **amber** inside the warning window (amber on the due date
@@ -184,6 +185,10 @@ the start of that day, UTC).
   - last year's was missed → **red**, deadline last year's due date, until this
     year's is met on time. A posting after a missed due date is that date's late
     posting, shown as its `published_at`; it never doubles as the next year's.
+    If a year is skipped and then one filing is made, that filing settles the
+    skipped year, and the row stays red until a second one settles this year.
+    Without a link from a record to the year it is for, one filing cannot be
+    both, and the board does not guess the kinder answer.
 
   History starts at the first posting's due date, so a vault with nothing posted
   is no-data (or amber in the window), never a breach read off the calendar. A

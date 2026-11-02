@@ -591,12 +591,16 @@ def due_cycles(spec, published, through):
     """Each yearly due date from the first posting's through ``through``, with the
     posting that met it on time and, failing that, its late posting.
 
-    A due date is met on time by the first posting published (UTC date) after the
+    Due dates are settled oldest first, and each posting settles one. A due date
+    is met on time by the first unused posting published (UTC date) after the
     previous due date and on or before this one; later postings in the same year
-    are amendments and count for nothing further. A due date with no on-time
-    posting takes the first unused posting after it as its late posting, so a
-    late filing never doubles as the next year's. History starts at the first
-    posting's due date: nothing before it is judged from the calendar alone."""
+    are amendments and settle nothing further. A due date with no on-time posting
+    takes the first unused posting after it as its late posting. So a late filing
+    never doubles as the next year's, and when a year is skipped, the next filing
+    settles the skipped year first: the board stays red until there is a filing
+    for every due date, rather than read an ambiguous one as this year's. History
+    starts at the first posting's due date: nothing before it is judged from the
+    calendar alone."""
     if not published:
         return []
     used = [False] * len(published)

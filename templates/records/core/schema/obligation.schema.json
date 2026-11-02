@@ -99,7 +99,7 @@
     "due": {
       "type": "object",
       "additionalProperties": false,
-      "description": "The same date every year, such as an annual report due on November 1. Each due date needs its own posting, published in the year that ends on it. A posting after a missed due date is that date's late posting, and the next due date needs another. A day past the end of a month (February 29 in other years) falls on the month's last day.",
+      "description": "The same date every year, such as an annual report due on November 1. Each due date needs its own posting, published in the year that ends on it. Due dates are settled oldest first: a posting after a missed due date is that date's late posting, and the next due date needs another. A day past the end of a month (February 29 in other years) falls on the month's last day.",
       "required": ["month", "day"],
       "properties": {
         "month": { "type": "integer", "minimum": 1, "maximum": 12 },
