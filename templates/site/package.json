@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "The uvularia public site template — a static site built only from a records vault's published artifacts.",
   "scripts": {
     "dev": "astro dev",

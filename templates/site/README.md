@@ -192,6 +192,10 @@ request, so a broken change cannot reach `main`. The config test builds the site
 with a `site.config.ts` written for an older template, so a template sync that
 would break your file fails here first.
 
+## License
+
+The template's code and scaffolding are MIT-licensed; see [LICENSE](LICENSE). The site content your organization adds is yours, under whatever terms you choose.
+
 ---
 
 > Part of [uvularia](https://github.com/lentago/uvularia) by Lentago Labs.

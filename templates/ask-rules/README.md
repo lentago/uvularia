@@ -183,6 +183,10 @@ version and advances only when you cut a new one; rolling back is pinning the
 previous `rules-vN`. A release is the unit of "this is how the box behaves now",
 and it is reversible.
 
+## License
+
+The template's code and scaffolding are MIT-licensed; see [LICENSE](LICENSE). The rules your organization writes are yours, under whatever terms you choose.
+
 ---
 
 > Part of [uvularia](https://github.com/lentago/uvularia) by Lentago Labs.
