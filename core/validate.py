@@ -16,8 +16,9 @@ vault root (see ``[checks]`` below). Every one defaults to on:
   1. schema            every records/**/*.md has frontmatter that validates
                        against core/schema/record.schema.json.
   2. approved_source   a `status: approved` record has `source` and `approved`,
-                       its `source.file` exists under library/, and its sha256
-                       matches both the frontmatter and library/manifest.json.
+                       its `source.file` (a path from the repository root,
+                       such as library/files/<type>/<id>.pdf) exists, and its
+                       sha256 matches both the frontmatter and library/manifest.json.
   3. visibility        every record is `visibility: public` (the vault is public).
   4. links             relative Markdown links in records/ and index.md resolve.
   5. privacy           a configurable denylist (names, unit numbers) plus email

@@ -282,9 +282,9 @@ def render_record(fields, source=None, attachment_found=False):
         path = f"library/files/{fields['type']}/{fields['id']}.pdf"
         body += [
             f"> **Add the original document by hand.** {why} Put the original "
-            f"at `{path}` (rename it to match, keeping its own extension). Paths "
-            "here start at the top of the repository, so `library/` is part of "
-            "the path. Add a `source:` block to the frontmatter above:",
+            f"at `{path}`. Paths here start at the top of the repository, so "
+            "`library/` is part of the path. Add a `source:` block to the "
+            "frontmatter above:",
             ">",
             "> ```yaml",
             "> source:",
@@ -294,7 +294,10 @@ def render_record(fields, source=None, attachment_found=False):
             "> ```",
             ">",
             f"> and list the same path, `{path}`, with the same sha256 in "
-            "`library/manifest.json`. A reviewer must do this before approving "
+            "`library/manifest.json`. If the original is not a PDF, keep its own "
+            "extension (`.jpg`, `.txt`, …) in the file name, in `file:` and in the "
+            "manifest alike, and set `kind` to what it is: `scan`, `image`, "
+            "`text`, `html` or `other`. A reviewer must do this before approving "
             "the record.",
             "",
         ]
