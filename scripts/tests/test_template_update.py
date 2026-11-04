@@ -151,7 +151,7 @@ class UpdateDoor(unittest.TestCase):
         r, out = self.f.run()
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(out["changed"], "true")
-        self.assertEqual(out["conflicts"], "0")
+        self.assertEqual(out["attention"], "0")
         self.assertEqual(self.f.read("README.md"), "# template\nv2\n")
         self.assertEqual(self.f.read("new.txt"), "added\n")
         self.assertFalse((self.f.client / "old.txt").exists())
@@ -192,7 +192,7 @@ class UpdateDoor(unittest.TestCase):
         self.f.template_commit({"doc.md": DOC.replace("line 12\n", "line 12 (template)\n")},
                                "v2")
         r, out = self.f.run()
-        self.assertEqual(out["conflicts"], "0", r.stderr)
+        self.assertEqual(out["attention"], "0", r.stderr)
         doc = self.f.read("doc.md")
         self.assertIn("line 1 (ours)", doc)
         self.assertIn("line 12 (template)", doc)
@@ -204,7 +204,7 @@ class UpdateDoor(unittest.TestCase):
                                "v2")
         r, out = self.f.run()
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertEqual(out["conflicts"], "1")
+        self.assertEqual(out["attention"], "1")
         doc = self.f.read("doc.md")
         self.assertIn("<<<<<<< yours", doc)
         self.assertIn(">>>>>>> template now", doc)
@@ -246,9 +246,10 @@ class UpdateDoor(unittest.TestCase):
         r, out = self.f.run()
         self.assertEqual(out["changed"], "true", r.stderr)
         self.assertIn("unknown", r.stdout)
+        self.assertEqual(out["attention"], "2", "each no-base replacement needs a look")
         self.assertTrue((self.f.client / "old.txt").exists())
         self.assertEqual(self.f.read("README.md"), "# template\nv1\n")
-        listed = self.f.body().split("Replaced without a base")[1]
+        listed = self.f.body().split("replaced without a base")[1]
         self.assertIn("`README.md`", listed)
         self.assertIn("`new.txt`", listed)
 
@@ -331,6 +332,10 @@ class WhatShips(unittest.TestCase):
         steps = re.split(r"\n      - ", wf)
         holders = [s.splitlines()[0] for s in steps if "secrets.TEMPLATE_UPDATE_TOKEN }}" in s]
         self.assertEqual(holders, ["name: Open the pull request with your token"])
+        push = next(s for s in steps if s.startswith("name: Open the pull request"))
+        self.assertNotIn("--force", push, "a closed update's branch may hold your work")
+        self.assertNotRegex(push, r"https://[^\s\"]*@github\.com", "no token in a URL")
+        self.assertIn("steps.update.outputs.attention", push)
 
 
 if __name__ == "__main__":

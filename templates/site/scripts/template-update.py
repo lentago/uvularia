@@ -295,10 +295,11 @@ def summary(pl: Plan, server: str = "https://github.com") -> str:
             "both versions between `<<<<<<< yours` and `>>>>>>> template now`. Keep what "
             "you want, delete the markers, and push to this branch.",
             [p for p, _c, _m in pl.conflicts])
-    section("Replaced without a base to compare against",
+    section("Needs you: replaced without a base to compare against",
             f"There was no record of the template version this repository last took "
             f"({pl.base_how}), so these now match the template. Check the diff for any "
-            "change of yours that this undid. Nothing was removed.",
+            "change of yours that this undid, and put it back on this branch. Nothing was "
+            "removed.",
             [p for p, _e in pl.replaced_no_base])
     section("Taken from the template",
             "You had not changed these since your last update.",
@@ -358,7 +359,7 @@ def run(root: Path, template_url: str | None, dry_run: bool, body: Path | None,
     here = os.environ.get("GITHUB_REPOSITORY", "")
     if here.lower() == cfg.source.lower():
         print(f"template-update: this is the template itself ({cfg.source}); nothing to do")
-        output(changed="false", conflicts="0")
+        output(changed="false", attention="0")
         return None
     if git("status", "--porcelain", "--untracked-files=no", root=root):
         raise UpdateError("the working tree has uncommitted changes; commit or stash them first")
@@ -389,7 +390,10 @@ def run(root: Path, template_url: str | None, dry_run: bool, body: Path | None,
         body.write_text(text)
     if issue_body:
         issue_body.write_text(issue_summary(pl))
-    output(changed=str(pl.changed).lower(), conflicts=str(len(pl.conflicts)),
+    # Files that need a person: conflict markers, or replaced with no base to say
+    # whether they held a change of yours. Either one opens the pull request as a draft.
+    output(changed=str(pl.changed).lower(),
+           attention=str(len(pl.conflicts) + len(pl.replaced_no_base)),
            new=new, short=new[:7], source=cfg.source)
     return pl
 

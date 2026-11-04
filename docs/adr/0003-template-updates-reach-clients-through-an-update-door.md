@@ -76,9 +76,13 @@ options. The maintainer chose the second on 2026-11-04.
      decision.
    - **site:** `site.config.ts`, `CODEOWNERS` and `LICENSE`.
 
-5. **One pull request at a time.** While an update pull request is open, the
-   workflow does nothing, so it never overwrites work the client pushed to
-   that branch.
+5. **One pull request at a time, and no for an answer.** While an update pull
+   request is open, the workflow does nothing. Each update has its own branch,
+   `template-update/<template commit>`, and is never force-pushed. A client
+   who closes an update pull request without merging it is not offered that
+   template commit again (its branch, and anything they pushed to it, stays),
+   and the next template change opens a new one. A pull request that holds
+   conflict markers, or files replaced without a base, opens as a draft.
 
 6. **The demonstration client takes updates through the door.** Its three
    repositories carry the door, with keep lists that add the files its

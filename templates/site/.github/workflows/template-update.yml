@@ -12,7 +12,8 @@
 #   3. with your token, commits that to a branch and opens a pull request.
 #      Your checks run on it, and nothing changes until you merge it. When the
 #      same lines changed on both sides, the pull request opens as a draft and
-#      says which files need you;
+#      says which files need you. If you closed the pull request for this same
+#      template commit before, it is not offered again;
 #   4. without your token, opens (or updates) one issue saying an update is
 #      waiting and how to set the token up. The run stays green: a missing
 #      token is a setup step, not a failure.
@@ -84,24 +85,31 @@ jobs:
           GH_TOKEN: ${{ secrets.TEMPLATE_UPDATE_TOKEN }}
           SOURCE: ${{ steps.update.outputs.source }}
           SHORT: ${{ steps.update.outputs.short }}
-          CONFLICTS: ${{ steps.update.outputs.conflicts }}
+          ATTENTION: ${{ steps.update.outputs.attention }}
         run: |
           branch="template-update/${SHORT}"
+          # A branch for this template commit already exists only if you closed its
+          # pull request without merging: you said no to this update. Leave it, and
+          # anything you pushed to it, alone; the next template change opens a new one.
+          if gh api "repos/${GITHUB_REPOSITORY}/branches/${branch}" --silent 2>/dev/null; then
+            echo "::notice title=template-update::${branch} already exists, so this update was offered before and its pull request closed. Delete that branch to be offered it again."
+            exit 0
+          fi
           git switch --quiet -c "$branch"
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit --quiet -m "Template update: ${SOURCE}@${SHORT}"
-          if ! git push --quiet --force \
-                 "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+          gh auth setup-git   # git asks gh for the token, which reads it from GH_TOKEN
+          if ! git push --quiet "https://github.com/${GITHUB_REPOSITORY}.git" \
                  "HEAD:refs/heads/${branch}"; then
             echo "::error title=template-update::The push was refused. TEMPLATE_UPDATE_TOKEN may have expired, or lacks Contents and Workflows write on this repository. Make a new one (see the header of this workflow) and run template-update again."
             exit 1
           fi
           title="Template update: ${SOURCE}@${SHORT}"
           draft=()
-          if [ "$CONFLICTS" != "0" ]; then
+          if [ "$ATTENTION" != "0" ]; then
             draft=(--draft)
-            title="${title} (${CONFLICTS} file(s) need you)"
+            title="${title} (${ATTENTION} file(s) need you)"
           fi
           gh pr create -R "$GITHUB_REPOSITORY" --head "$branch" "${draft[@]}" \
             --title "$title" --body-file "$RUNNER_TEMP/body.md"

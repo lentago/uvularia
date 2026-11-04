@@ -322,8 +322,10 @@ Some paths are never touched at all: your records, receipts and library, your
 `.github/template-update.toml`. That file is yours, and an update never changes
 it, so add a path when you've made a template file your own.
 
-> **Heads up:** while an update pull request is open, no new one opens. Merge
-> it or close it, and the next run brings whatever is newer.
+> **Heads up:** while an update pull request is open, no new one opens. Closing
+> one without merging means "not this one": that update is not offered again,
+> and the next change to the template opens a fresh pull request. Delete its
+> `template-update/…` branch if you change your mind.
 
 - **If you pin `core/`** with `scripts/sync-core.sh` (see the vault README), add
   `"core/"` to `keep`, or the update will bring the template's `core/` instead.
