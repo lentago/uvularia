@@ -17,7 +17,9 @@ what "Use this template" makes. What is held (uvularia#112, ADR-0003):
   * no base (first commit matches nothing) means nothing is removed and every
     replacement is listed; an up-to-date repository gets no change at all;
   * in the template repository itself, a dirty checkout, and modes: the script
-    does nothing, refuses, and keeps the executable bit;
+    does nothing, refuses, and keeps the executable bit; a damaged or unfetchable
+    recorded base, or an uncommitted file where the template adds one, stops the
+    run instead of overwriting anything;
   * the three templates ship identical copies of the script and the workflow,
     each config names its own template and keeps what must never change, and
     the workflow is pinned, keeps the token out of every step that does not
@@ -253,6 +255,32 @@ class UpdateDoor(unittest.TestCase):
         self.assertIn("`README.md`", listed)
         self.assertIn("`new.txt`", listed)
 
+    def test_a_damaged_base_file_stops_the_run(self):
+        self.f.template_commit({"README.md": "# template\nv2\n"}, "v2")
+        self.f.client_commit({".github/template-base": "# by hand\nnot-a-commit\n"})
+        r, _ = self.f.run()
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("not a commit id", r.stderr)
+        self.assertEqual(self.f.staged(), "")
+
+    def test_a_base_that_cannot_be_fetched_stops_the_run_rather_than_overwrite(self):
+        self.f.client_commit({".github/workflows/ci.yml": "name: ours\n",
+                              ".github/template-base": "0123456789abcdef0123456789abcdef01234567\n"})
+        self.f.template_commit({".github/workflows/ci.yml": "name: ci v2\n"}, "v2")
+        r, _ = self.f.run()
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("could not be fetched", r.stderr)
+        self.assertEqual(self.f.read(".github/workflows/ci.yml"), "name: ours\n")
+        self.assertEqual(self.f.staged(), "")
+
+    def test_an_untracked_file_where_the_template_adds_one_is_refused(self):
+        self.f.template_commit({"new.txt": "from the template\n"}, "v2")
+        (self.f.client / "new.txt").write_text("my notes, not committed\n")
+        r, _ = self.f.run()
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("new.txt", r.stderr)
+        self.assertEqual(self.f.read("new.txt"), "my notes, not committed\n")
+
     def test_the_template_itself_does_nothing(self):
         self.f.template_commit({"README.md": "# template\nv2\n"}, "v2")
         r, out = self.f.run(env={**ENV, "GITHUB_REPOSITORY": "Example/Records-Template"})
@@ -336,6 +364,9 @@ class WhatShips(unittest.TestCase):
         self.assertNotIn("--force", push, "a closed update's branch may hold your work")
         self.assertNotRegex(push, r"https://[^\s\"]*@github\.com", "no token in a URL")
         self.assertIn("steps.update.outputs.attention", push)
+        self.assertIn("git ls-remote --exit-code", push, "tell a missing branch from an error")
+        self.assertNotIn("2>/dev/null", push, "no error is swallowed as 'branch does not exist'")
+        self.assertIn("--state all", push, "a branch with no pull request is a half-finished run")
 
 
 if __name__ == "__main__":
