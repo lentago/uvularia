@@ -52,8 +52,10 @@ options. The maintainer chose the second on 2026-11-04.
 3. **A three-way, file-by-file update.** The repository records the template
    commit it last took in `.github/template-base`. Before its first update,
    that base is inferred: the first commit "Use this template" makes has
-   exactly the template's tree. For each file, the base, the template now and
-   the client's version are compared:
+   exactly the template's tree. A recorded base that is damaged or can't be
+   fetched stops the run. It is never treated as "no base", because that path
+   replaces files instead of merging them. For each file, the base, the
+   template now and the client's version are compared:
    - a file the client never changed becomes the template's;
    - a file the template didn't change stays the client's;
    - where both changed it, the two are merged line by line, and overlapping

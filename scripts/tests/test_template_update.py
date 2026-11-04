@@ -17,7 +17,9 @@ what "Use this template" makes. What is held (uvularia#112, ADR-0003):
   * no base (first commit matches nothing) means nothing is removed and every
     replacement is listed; an up-to-date repository gets no change at all;
   * in the template repository itself, a dirty checkout, and modes: the script
-    does nothing, refuses, and keeps the executable bit;
+    does nothing, refuses, and keeps the executable bit; a damaged or unfetchable
+    recorded base, or an uncommitted file where the template adds one, stops the
+    run instead of overwriting anything;
   * the three templates ship identical copies of the script and the workflow,
     each config names its own template and keeps what must never change, and
     the workflow is pinned, keeps the token out of every step that does not
@@ -253,6 +255,40 @@ class UpdateDoor(unittest.TestCase):
         self.assertIn("`README.md`", listed)
         self.assertIn("`new.txt`", listed)
 
+    def test_a_damaged_base_file_stops_the_run(self):
+        self.f.template_commit({"README.md": "# template\nv2\n"}, "v2")
+        self.f.client_commit({".github/template-base": "# by hand\nnot-a-commit\n"})
+        r, _ = self.f.run()
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("not a commit id", r.stderr)
+        self.assertEqual(self.f.staged(), "")
+
+    def test_a_base_file_with_no_commit_line_stops_the_run(self):
+        self.f.template_commit({"README.md": "# template\nv2\n"}, "v2")
+        self.f.client_commit({".github/template-base": "# only a comment\n"})
+        r, _ = self.f.run()
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("not a commit id", r.stderr)
+        self.assertEqual(self.f.read("README.md"), "# template\nv1\n")
+
+    def test_a_base_that_cannot_be_fetched_stops_the_run_rather_than_overwrite(self):
+        self.f.client_commit({".github/workflows/ci.yml": "name: ours\n",
+                              ".github/template-base": "0123456789abcdef0123456789abcdef01234567\n"})
+        self.f.template_commit({".github/workflows/ci.yml": "name: ci v2\n"}, "v2")
+        r, _ = self.f.run()
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("could not be fetched", r.stderr)
+        self.assertEqual(self.f.read(".github/workflows/ci.yml"), "name: ours\n")
+        self.assertEqual(self.f.staged(), "")
+
+    def test_an_untracked_file_where_the_template_adds_one_is_refused(self):
+        self.f.template_commit({"new.txt": "from the template\n"}, "v2")
+        (self.f.client / "new.txt").write_text("my notes, not committed\n")
+        r, _ = self.f.run()
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("new.txt", r.stderr)
+        self.assertEqual(self.f.read("new.txt"), "my notes, not committed\n")
+
     def test_the_template_itself_does_nothing(self):
         self.f.template_commit({"README.md": "# template\nv2\n"}, "v2")
         r, out = self.f.run(env={**ENV, "GITHUB_REPOSITORY": "Example/Records-Template"})
@@ -280,6 +316,124 @@ class UpdateDoor(unittest.TestCase):
         mode = git("ls-files", "-s", "scripts/tool.sh", cwd=self.f.client).split()[0]
         self.assertEqual(mode, "100755")
         self.assertTrue(os.access(self.f.client / "scripts/tool.sh", os.X_OK))
+
+
+def step_script(name: str) -> str:
+    """The `run: |` block of one step of the shipped workflow, without a YAML library."""
+    lines = (ROOT / "templates/records/.github/workflows/template-update.yml").read_text() \
+        .splitlines()
+    start = next(i for i, l in enumerate(lines) if l.strip() == f"- name: {name}")
+    run = next(i for i in range(start, len(lines)) if lines[i].strip() == "run: |")
+    indent = len(lines[run]) - len(lines[run].lstrip()) + 2
+    body = []
+    for line in lines[run + 1:]:
+        if line.strip() and len(line) - len(line.lstrip()) < indent:
+            break
+        body.append(line[indent:])
+    return "\n".join(body) + "\n"
+
+
+GH_STUB = """#!/bin/sh
+# Stand-in for the GitHub CLI: records what the step asks for.
+case "$1 $2" in
+  "auth setup-git") exit 0 ;;
+  "pr list") cat "$STUB_DIR/prior" 2>/dev/null; exit 0 ;;
+  "pr create") echo "$@" >> "$STUB_DIR/created"; exit 0 ;;
+esac
+echo "gh stub: unexpected $*" >&2; exit 1
+"""
+
+
+class ThePushStep(unittest.TestCase):
+    """`Open the pull request with your token`, run under bash as the workflow runs it,
+    against a local bare repository standing in for GitHub and a stub `gh`."""
+
+    REPO = "client-org/client-records"
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        tmp = Path(self._tmp.name)
+        self.f = Fixture(tmp)
+        self.origin = tmp / "origin.git"
+        git("init", "-q", "--bare", "-b", "main", str(self.origin), cwd=tmp)
+        self.stub = tmp / "stub"
+        (self.stub / "bin").mkdir(parents=True)
+        (self.stub / "bin" / "gh").write_text(GH_STUB)
+        os.chmod(self.stub / "bin" / "gh", 0o755)
+        self.step = step_script("Open the pull request with your token")
+        self.f.template_commit({"README.md": "# template\nv2\n"}, "v2")
+        r, self.out = self.f.run()
+        self.assertEqual(self.out["changed"], "true", r.stderr)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def run_step(self, remote=None):
+        env = {**ENV, "GH_TOKEN": "x", "SOURCE": self.out["source"], "SHORT": self.out["short"],
+               "ATTENTION": self.out["attention"], "RUNNER_TEMP": str(self.f.tmp),
+               "GITHUB_REPOSITORY": self.REPO, "STUB_DIR": str(self.stub),
+               "PATH": f"{self.stub / 'bin'}:{os.environ['PATH']}",
+               "GIT_CONFIG_COUNT": "1",
+               "GIT_CONFIG_KEY_0": f"url.file://{remote or self.origin}.insteadOf",
+               "GIT_CONFIG_VALUE_0": f"https://github.com/{self.REPO}.git"}
+        return subprocess.run(["bash", "-e", "-c", self.step], cwd=self.f.client, env=env,
+                              capture_output=True, text=True)
+
+    @property
+    def branch(self):
+        return f"template-update/{self.out['short']}"
+
+    def created(self):
+        p = self.stub / "created"
+        return p.read_text() if p.exists() else ""
+
+    def remote_readme(self):
+        return git("show", f"{self.branch}:README.md", cwd=self.origin)
+
+    def push_branch(self, readme: str):
+        """A branch an earlier run (or a person) left on the remote."""
+        other = self.f.tmp / "other"
+        git("clone", "-q", str(self.f.client), str(other), cwd=self.f.tmp)
+        write(other, {"README.md": readme})
+        git("commit", "-q", "-am", "earlier", cwd=other)
+        git("push", "-q", str(self.origin), f"HEAD:refs/heads/{self.branch}", cwd=other)
+
+    def test_a_new_update_is_pushed_and_opened(self):
+        r = self.run_step()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(self.remote_readme(), "# template\nv2")
+        self.assertIn(f"--head {self.branch}", self.created())
+        self.assertNotIn("--draft", self.created())
+
+    def test_an_update_that_needs_you_opens_as_a_draft(self):
+        self.out["attention"] = "2"
+        r = self.run_step()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("--draft", self.created())
+        self.assertIn("2 file(s) need you", self.created())
+
+    def test_a_declined_update_is_left_alone(self):
+        self.push_branch("# what the client pushed while resolving\n")
+        (self.stub / "prior").write_text("7\n")
+        r = self.run_step()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("closed without merging", r.stdout)
+        self.assertEqual(self.created(), "")
+        self.assertEqual(self.remote_readme(), "# what the client pushed while resolving")
+
+    def test_a_half_finished_run_is_replaced_by_this_runs_update(self):
+        self.push_branch("# a stale snapshot from an earlier run\n")
+        r = self.run_step()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("stopped before opening its pull request", r.stdout)
+        self.assertEqual(self.remote_readme(), "# template\nv2")
+        self.assertIn(f"--head {self.branch}", self.created())
+
+    def test_an_unreadable_remote_stops_the_run(self):
+        r = self.run_step(remote=self.f.tmp / "no-such-repo.git")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("Could not read this repository's branches", r.stdout)
+        self.assertEqual(self.created(), "")
 
 
 class WhatShips(unittest.TestCase):
@@ -333,9 +487,13 @@ class WhatShips(unittest.TestCase):
         holders = [s.splitlines()[0] for s in steps if "secrets.TEMPLATE_UPDATE_TOKEN }}" in s]
         self.assertEqual(holders, ["name: Open the pull request with your token"])
         push = next(s for s in steps if s.startswith("name: Open the pull request"))
-        self.assertNotIn("--force", push, "a closed update's branch may hold your work")
+        self.assertNotRegex(push, r"--force(?!-with-lease=)", "never a bare force-push: a "
+                            "closed update's branch may hold your work (ThePushStep runs it)")
         self.assertNotRegex(push, r"https://[^\s\"]*@github\.com", "no token in a URL")
         self.assertIn("steps.update.outputs.attention", push)
+        self.assertIn("git ls-remote --exit-code", push, "tell a missing branch from an error")
+        self.assertNotIn("2>/dev/null", push, "no error is swallowed as 'branch does not exist'")
+        self.assertIn("--state all", push, "a branch with no pull request is a half-finished run")
 
 
 if __name__ == "__main__":
