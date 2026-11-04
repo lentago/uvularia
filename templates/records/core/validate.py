@@ -484,11 +484,21 @@ def check_approved_source(root, records, _cfg):
         rel_file = source.get("file")
         declared = source.get("sha256")
         if not rel_file:
-            problems.append(f"{rec.rel}: source has no 'file'; point it at the original under library/")
+            problems.append(f"{rec.rel}: source has no 'file'; set it to the original's path from "
+                            "the repository root, e.g. 'library/files/minutes/<id>.pdf'")
             continue
         fpath = root / rel_file
         if not fpath.is_file():
-            problems.append(f"{rec.rel}: source.file '{rel_file}' does not exist; add the file under library/ or fix the path")
+            if (root / "library" / rel_file).is_file():
+                problems.append(
+                    f"{rec.rel}: source.file '{rel_file}' does not exist; paths start at the "
+                    f"repository root, and the file is at 'library/{rel_file}'. Set source.file, "
+                    f"and its key in library/manifest.json, to 'library/{rel_file}'")
+            else:
+                problems.append(
+                    f"{rec.rel}: source.file '{rel_file}' does not exist; paths start at the "
+                    "repository root, so put the file there or fix the path "
+                    "(an original usually lives at 'library/files/<type>/<id>.pdf')")
             continue
         actual = _sha256(fpath)
         if declared != actual:

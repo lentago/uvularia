@@ -279,12 +279,23 @@ def render_record(fields, source=None, attachment_found=False):
         else:
             why = ("No file was attached to the issue, so this record has no "
                    "`source` yet.")
+        path = f"library/files/{fields['type']}/{fields['id']}.pdf"
         body += [
             f"> **Add the original document by hand.** {why} Put the original "
-            f"under `library/files/{fields['type']}/`, add it to "
-            "`library/manifest.json` with its sha256 (`sha256sum <file>`), and "
-            "add a `source:` block to the frontmatter above. A reviewer must do "
-            "this before approving the record.",
+            f"at `{path}` (rename it to match, keeping its own extension). Paths "
+            "here start at the top of the repository, so `library/` is part of "
+            "the path. Add a `source:` block to the frontmatter above:",
+            ">",
+            "> ```yaml",
+            "> source:",
+            ">   kind: pdf",
+            f">   file: {path}",
+            ">   sha256: <the output of: sha256sum " + path + ">",
+            "> ```",
+            ">",
+            f"> and list the same path, `{path}`, with the same sha256 in "
+            "`library/manifest.json`. A reviewer must do this before approving "
+            "the record.",
             "",
         ]
     return "\n".join(fm + body) + "\n"

@@ -168,6 +168,26 @@ class ValidateTests(unittest.TestCase):
         problems = run_checks(self.root)
         self.assertTrue(any("source.sha256 does not match" in p for p in problems), problems)
 
+    def test_approved_source_names_the_library_path_when_file_is_library_relative(self):
+        # lentago/uvularia#98: 'files/minutes/x.pdf' written relative to library/.
+        path = self.root / "records" / "minutes" / "2026-09-16-board-minutes.md"
+        path.write_text(path.read_text().replace(
+            "file: library/files/minutes/", "file: files/minutes/", 1), encoding="utf-8")
+        problems = run_checks(self.root)
+        self.assertTrue(any("paths start at the repository root" in p
+                            and "'library/files/minutes/2026-09-16-board-minutes.pdf'" in p
+                            for p in problems), problems)
+
+    def test_approved_source_says_paths_start_at_the_root_when_file_is_missing(self):
+        path = self.root / "records" / "minutes" / "2026-09-16-board-minutes.md"
+        path.write_text(path.read_text().replace(
+            "file: library/files/minutes/2026-09-16-board-minutes.pdf",
+            "file: library/files/minutes/no-such-file.pdf", 1), encoding="utf-8")
+        problems = run_checks(self.root)
+        self.assertTrue(any("no-such-file.pdf' does not exist" in p
+                            and "paths start at the repository root" in p
+                            and "is at 'library/" not in p for p in problems), problems)
+
     def test_visibility_fails_on_non_public(self):
         # isolate the visibility check so we prove it (not schema) can fail.
         (self.root / "validate.toml").write_text(
