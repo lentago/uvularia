@@ -55,6 +55,10 @@ CONFIG = ".github/template-update.toml"
 BASE_FILE = ".github/template-base"
 ALWAYS_KEEP = (CONFIG, BASE_FILE)
 NEW_REF = "refs/template-update/new"
+RESTART = (f"Deleting {BASE_FILE} makes the next run compare against the template commit "
+           "this repository was made from, which still merges your changes. If it cannot "
+           "find that commit either, it replaces each template file you changed and lists "
+           "them in a draft pull request for you to check.")
 
 
 class UpdateError(Exception):
@@ -104,14 +108,16 @@ def load_config(root: Path) -> Config:
 
 
 def read_base(root: Path) -> str | None:
+    """The recorded base: None only when there is no base file at all. A file with
+    no commit line in it comes back as "", which the caller treats as damaged."""
     p = root / BASE_FILE
-    if not p.is_file():
+    if not p.exists():
         return None
     for line in p.read_text().splitlines():
         line = line.strip()
         if line and not line.startswith("#"):
             return line
-    return None
+    return ""
 
 
 def base_text(source: str, sha: str) -> str:
@@ -380,8 +386,7 @@ def run(root: Path, template_url: str | None, dry_run: bool, body: Path | None,
     if base is not None:
         if not re.fullmatch(r"[0-9a-f]{40}", base):
             raise UpdateError(f"{BASE_FILE} holds {base!r}, not a commit id. Put back the "
-                              f"line it had (git log -p {BASE_FILE}), or delete the file "
-                              "to start again from the commit this repository was made from.")
+                              f"line it had (git log -p {BASE_FILE}). {RESTART}")
         if not have_commit(root, base):
             r = subprocess.run(["git", "fetch", "--quiet", "--no-tags", url, base], cwd=root,
                                capture_output=True)
@@ -389,8 +394,7 @@ def run(root: Path, template_url: str | None, dry_run: bool, body: Path | None,
                 raise UpdateError(
                     f"the recorded base {base[:7]} could not be fetched from {url} "
                     f"({r.stderr.decode().strip() or 'not in its history'}). If the template "
-                    "was unreachable, run this again. If its history was rewritten, delete "
-                    f"{BASE_FILE} to start again from the commit this repository was made from.")
+                    f"was unreachable, run this again. If its history was rewritten: {RESTART}")
     else:
         base = infer_base(root, new)
         how = "inferred" if base else ("this repository's first commit does not match "
