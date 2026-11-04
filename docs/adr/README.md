@@ -13,3 +13,4 @@ added later in hindsight.
 | :-- | :-- | :-- |
 | [0001](0001-demo-identity-in-one-file-generated-seed.md) | The demonstration client's identity lives in one file and its records are generated, so renaming it is one edit | 2026-10-03 |
 | [0002](0002-adoption-ladder-one-repository-first.md) | Adoption is a ladder of four rungs; the first rung is one repository that publishes its own board | 2026-10-04 |
+| [0003](0003-template-updates-reach-clients-through-an-update-door.md) | Later template changes reach a client as a pull request opened in their own repository, with their own token, by an update door each template ships | 2026-11-04 |

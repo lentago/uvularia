@@ -1,6 +1,9 @@
 # ADR-0002: Adoption is a ladder, and the first rung is one repository
 
-**Status:** Accepted (2026-10-04)
+**Status:** Accepted (2026-10-04). Decision 5 refined by
+[ADR-0003](0003-template-updates-reach-clients-through-an-update-door.md)
+(2026-11-04): the client still decides what lands, but later fixes now
+arrive as a pull request in the client's own repository.
 
 ## Context
 

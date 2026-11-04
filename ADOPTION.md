@@ -169,10 +169,11 @@ into anything under `templates/`. The files you touch (`CODEOWNERS`,
 - **A missing file is "no data", never green.** An empty board means "nothing
   published yet", not "all in order".
 - **Your copy is yours, and that includes updates.** A template copy never
-  receives our later fixes on its own. The vault carries a small script,
-  `scripts/sync-core.sh`, that pulls the latest checks from this repository
-  when *you* choose to run it, and the template's own history shows what
-  changed. We will not reach into your repository; you pull.
+  receives our later fixes on its own. Your vault carries a workflow that
+  offers them to you once a week as a pull request, opened with a token *you*
+  make, and nothing changes until you merge it. We never reach into your
+  repository. Setting it up takes about three minutes:
+  [Getting later template changes](#getting-later-template-changes).
 - **The `demo/` vault is a lab fixture, not a starting point.** It is a
   generated demonstration with a fictional client's records. A real vault
   starts empty from the template.
@@ -250,6 +251,94 @@ as a variable and a secret in your records and rules repositories, and the
 dashboard JSON applied to your account. The records template README's **Watch
 the pipeline** section walks through it; the event contract is drosera's
 [`docs/clients/uvularia.md`](https://github.com/lentago/drosera/blob/main/docs/clients/uvularia.md).
+
+---
+
+# Getting later template changes
+
+**What you're about to do:** let each of your repositories receive our later
+fixes (a sharper check, a clearer guide, a repaired workflow) as a pull request
+in your own repository, which you review and merge like any other.
+
+**Why bother:** a repository made with **Use this template** is a copy. Without
+this, it never hears about a fix. With it, a pull request shows up when there
+is something new, your checks run on it, and the diff shows every line.
+
+**How long:** about three minutes per repository, once.
+
+**Skip this if** you would rather copy changes by hand from the template's
+history. Nothing breaks if you never set this up; the workflow just opens an
+issue saying an update is waiting.
+
+## The steps
+
+Do this in each repository you made from a template: the vault, and the site
+and rules repositories if you climbed that far.
+
+1. **Make a token.** A token is a password for one program, with only the
+   powers you give it. On GitHub, open your picture → **Settings → Developer
+   settings → Personal access tokens → Fine-grained tokens → Generate new
+   token**. Set **Resource owner** to your organization, **Repository access**
+   to *Only select repositories* and pick this one repository, and under
+   **Repository permissions** set **Contents**, **Pull requests** and
+   **Workflows** to *Read and write*. Pick an expiry date and put it in your
+   calendar.
+2. **Give it to the repository.** In the repository, **Settings → Secrets and
+   variables → Actions → New repository secret**. Name it
+   `TEMPLATE_UPDATE_TOKEN` and paste the token. GitHub never shows it again,
+   and the workflow uses it only to push the update branch and open the pull
+   request.
+3. **Run it once.** **Actions → template-update → Run workflow**. After that it
+   runs every Monday on its own.
+
+> **Heads up:** your organization may need to allow fine-grained tokens, or
+> approve this one, before it works. An organization owner does that under the
+> organization's **Settings → Personal access tokens**. If your token is still
+> pending, the run fails with a refused push.
+
+## How you know it worked
+
+The run ends green, and either it says the repository is already up to date or
+a pull request titled **Template update: …** is open with your checks running on
+it. Its description lists every file it changed and why.
+
+## What the pull request changes, and what it never touches
+
+For each file it compares three versions: the template at your last update, the
+template now, and yours.
+
+| If… | then |
+| :-- | :-- |
+| you never changed the file | it becomes the template's new version |
+| the template didn't change it | yours stays exactly as it is |
+| you both changed it, on different lines | the two are merged and both changes are kept |
+| you both changed the same lines | both versions are left in the file between `<<<<<<<` and `>>>>>>>` markers, the pull request opens as a draft, and its description names the files; pick what you want, delete the markers, push |
+| the template removed it | it is removed, unless you had changed it; then it stays and is listed |
+
+Some paths are never touched at all: your records, receipts and library, your
+`index.md`, settings and reviewers in the vault; your `policy.yaml`,
+`instructions.md`, incidents and golden questions in the rules repository; your
+`site.config.ts` in the site. The list is `keep` in
+`.github/template-update.toml`. That file is yours, and an update never changes
+it, so add a path when you've made a template file your own.
+
+> **Heads up:** while an update pull request is open, no new one opens. Merge
+> it or close it, and the next run brings whatever is newer.
+
+- **If you pin `core/`** with `scripts/sync-core.sh` (see the vault README), add
+  `"core/"` to `keep`, or the update will bring the template's `core/` instead.
+- **The rules repository's `ask-function/`** is not part of any template, so an
+  update never touches it. Copy it again from this repository when you want a
+  newer one, as the [Ask function README](templates/ask-function/README.md)
+  says.
+- **Made your repository before November 2026?** It doesn't have the workflow
+  yet. Copy three files from your template into it:
+  `.github/workflows/template-update.yml`, `scripts/template-update.py` and
+  `.github/template-update.toml`. Commit them, then follow the steps above.
+  The first run works out which template version you started from on its own.
+
+Why it works this way is recorded in
+[ADR-0003](docs/adr/0003-template-updates-reach-clients-through-an-update-door.md).
 
 ---
 

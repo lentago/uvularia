@@ -65,7 +65,7 @@ This is the lowest common denominator of theoria, essex-crossing-hoa, and the lu
 
 ## 4. Three repositories, three pipelines
 
-Three repos rather than three folders, because the point is that they have **different reviewers, different required checks, and different blast radii**, and GitHub rulesets are per-repo. All three are created in the client's own GitHub org from templates ("Use this template", as monarda does). All three can be public; the vault must be, because it holds only public records and because branch protection is free only on public repos.
+Three repos rather than three folders, because the point is that they have **different reviewers, different required checks, and different blast radii**, and GitHub rulesets are per-repo. All three are created in the client's own GitHub org from templates ("Use this template", as monarda does). Later template changes reach them as a pull request in the client's own repository, opened weekly by an update workflow each template ships and pushed with the client's own token; the client's checks gate it and the client merges it ([ADR-0003](adr/0003-template-updates-reach-clients-through-an-update-door.md)). All three can be public; the vault must be, because it holds only public records and because branch protection is free only on public repos.
 
 A client meets them one at a time, not all at once ([ADR-0002](adr/0002-adoption-ladder-one-repository-first.md)): the vault alone is the first rung and publishes its own plain board, so one repository is a complete, honest installation; the site, the Ask box with its AWS account, and the operator pane are three further rungs the client climbs only if they want to. The three-repo shape above is what a *complete* installation looks like.
 

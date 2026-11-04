@@ -5,8 +5,11 @@
 # Two jobs.
 #
 #   drift  — on every pull request, every push to main, once a day, and by hand.
-#            Runs the sync script's own tests, then compares the git tree hash of
-#            each subtree on main with the template repository's main. Equal
+#            Runs the sync script's own tests and those of the client-side update
+#            door the templates ship (templates/*/scripts/template-update.py,
+#            ADR-0003: the sync reversed, in a client's repository), then
+#            compares the git tree hash of each subtree on main with the
+#            template repository's main. Equal
 #            hashes mean byte-identical content. A sync pull request that is
 #            still waiting on its checks counts as fine (its sync/* branch
 #            matches). Anything else fails the job: a template repository is
@@ -63,7 +66,7 @@ jobs:
           python-version: '3.12'
       - name: Fetch main, the thing the template repositories must match
         run: git fetch --quiet --depth 1 origin main
-      - name: Test the sync script and the drift check against local repositories
+      - name: Test the sync, the drift check and the update door against local repositories
         run: python3 -m unittest discover -s scripts/tests -p "test_*.py" -v
       - name: Compare the three template repositories with main
         run: python3 scripts/template-drift.py --source-ref origin/main
