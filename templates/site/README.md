@@ -204,6 +204,36 @@ request, so a broken change cannot reach `main`. The config test builds the site
 with a `site.config.ts` written for an older template, so a template sync that
 would break your file fails here first.
 
+## Getting later template changes
+
+**What you're about to do:** let this repository receive our later fixes as a
+pull request you review. **Why bother:** this repository is a copy of the
+template and never hears about a fix on its own. **How long:** about three
+minutes, once.
+
+1. Make a fine-grained personal access token for **this repository only**, with
+   **Contents**, **Pull requests** and **Workflows** set to *Read and write*
+   (your picture → **Settings → Developer settings → Personal access tokens →
+   Fine-grained tokens**).
+2. Save it as the secret `TEMPLATE_UPDATE_TOKEN` (**Settings → Secrets and
+   variables → Actions**).
+3. Run **Actions → template-update → Run workflow**. It runs every Monday after
+   that.
+
+**How you know it worked:** the run is green and either says you are up to
+date or has opened a pull request titled **Template update: …**, with your
+checks running on it and a description of every file it changed.
+
+[`template-update.yml`](.github/workflows/template-update.yml) runs
+[`scripts/template-update.py`](scripts/template-update.py). A file you never
+changed becomes the template's new version, a file you changed is merged with
+the template's change, and where you both changed the same lines both versions
+are left for you to choose. Your `site.config.ts`, your reviewers, and any page you added yourself are never touched. That list is `keep` in
+[`.github/template-update.toml`](.github/template-update.toml), a file that is
+yours and that an update never changes. Without the token, the workflow opens
+an issue saying an update is waiting instead. The full rules are in
+[Getting later template changes](https://github.com/lentago/uvularia/blob/main/ADOPTION.md#getting-later-template-changes).
+
 ## License
 
 The template's code and scaffolding are MIT-licensed; see [LICENSE](LICENSE). The site content your organization adds is yours, under whatever terms you choose.

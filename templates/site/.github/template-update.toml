@@ -1,0 +1,24 @@
+# template-update: where this repository's later template changes come from,
+# and what an update must never touch.
+#
+# This file is yours. An update never changes it, so edit the keep list freely.
+# scripts/template-update.py reads it; .github/workflows/template-update.yml
+# runs that script once a week and opens a pull request for you to review.
+
+# The template this repository was made from, and the branch to follow.
+source = "lentago/uvularia-site-template"
+branch = "main"
+
+# Paths that are yours alone. An update never adds, changes or removes anything
+# here. A path ending in "/" is a whole folder. Everything else follows the
+# template, and where you have changed a file the template also changed, the
+# two are merged line by line in the pull request.
+#
+# Pages you add yourself are not part of the template, so an update never
+# touches them. Add a template page here if you rewrote it and want to keep
+# your version.
+keep = [
+  "site.config.ts",      # your settings: the one file you edit
+  ".github/CODEOWNERS",  # your reviewers
+  "LICENSE",
+]
