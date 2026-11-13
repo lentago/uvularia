@@ -183,7 +183,7 @@ rather than ship a broken site.
 
 ## Run it yourself
 
-Everything a check runs, you can run. You need **Node 22 or newer**.
+Everything a check runs, you can run. You need **Node 22.23.4 or newer** (Astro 7 requires it).
 
 ```
 npm install        # once
